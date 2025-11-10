@@ -10,7 +10,7 @@ from ..dependencies import validate_snippet_id
 router = APIRouter(prefix="/snippets")
 
 
-@router.post("")
+@router.post("", status_code=201)
 async def upload_snippet(snippet: UploadSnippet) -> Snippet:
     return await database.add_snippet(snippet)
 

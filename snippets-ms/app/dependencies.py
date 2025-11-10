@@ -16,4 +16,4 @@ async def validate_snippet_id(snippet_id: str) -> Snippet:
             status_code=404,
             detail=f"Snippet with id '{snippet_id}' not found"
         )
-    return snippet
+    return Snippet(**snippet)
