@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from .object_id import ObjectIdBaseModel
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Visibility(str, Enum):
@@ -14,7 +14,7 @@ class UploadSnippet(BaseModel):
     description: str
     code: str
     language: str
-    created_at: datetime
+    created_at: datetime = Field(default_factory=datetime.now)
     visibility: Visibility = Visibility.PUBLIC
 
 
