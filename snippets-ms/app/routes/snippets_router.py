@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from typing import Annotated
 
 from ..model.snippet import Snippet, UploadSnippet
@@ -36,5 +36,8 @@ async def delete_snippet(snippet: Annotated[Snippet, Depends(validate_snippet_id
 
 
 @router.post("/search")
-async def search(query: str) -> list[Snippet]:
-    return await database.temp_search(query)
+async def search(
+    query: str = None, 
+    language: str = Query(default=None, alias="lang")
+) -> list[Snippet]:
+    return await database.temp_search(query, language)

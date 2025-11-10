@@ -36,11 +36,25 @@ async def delete_snippet_by_id(snippet_id: ObjectId):
     return await snippets_collection.delete_one({"_id": str(snippet_id)})
 
 
-async def temp_search(query: str):
-    return await snippets_collection.find({
-        "$or": [
-            {"title": {"$regex": query}},
-            {"description": {"$regex": query}},
-            {"code": {"$regex": query}}
-        ]
-    }).to_list()
+async def temp_search(query: str = None, language: str = None):
+
+    filters = []
+
+    if query:
+        filters.append({
+            "$or": [
+                {"title": {"$regex": query, "$options": "i"}},
+                {"description": {"$regex": query, "$options": "i"}},
+                {"code": {"$regex": query, "$options": "i"}}
+            ]
+        })
+
+    if language:
+        filters.append({"language": {"$regex": f'^{language}$', "$options": "i"}})
+
+    if filters:
+        query_filter = {"$and": filters} if len(filters) > 1 else filters[0]
+    else:
+        query_filter = {}
+
+    return await snippets_collection.find(query_filter).to_list()
