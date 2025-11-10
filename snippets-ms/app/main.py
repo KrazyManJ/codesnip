@@ -8,7 +8,7 @@ from .model.snippet import Snippet
 app = FastAPI()
 
 
-@app.get("/")
+@app.get("/", tags=["Status"])
 def status():
     return {"status": "OK"}
 
@@ -16,7 +16,7 @@ def status():
 app.include_router(snippets_router.router)
 
 
-@app.post("/search")
+@app.post("/search", tags=["Snippets"])
 async def search(
     query: str = None, 
     language: str = Query(default=None, alias="lang")
@@ -24,6 +24,6 @@ async def search(
     return await database.temp_search(query, language)
 
 
-@app.get("/langs")
+@app.get("/langs", tags=["Snippets"])
 async def get_all_languages() -> list[str]:
     return await database.get_all_languages()

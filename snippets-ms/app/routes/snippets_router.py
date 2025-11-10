@@ -7,7 +7,7 @@ from ..services import database
 from ..dependencies import validate_snippet_id
 
 
-router = APIRouter(prefix="/snippets")
+router = APIRouter(prefix="/snippets", tags=["Snippets"])
 
 
 @router.post("", status_code=201)
