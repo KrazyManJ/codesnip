@@ -33,11 +33,3 @@ async def update_snippet(snippet: Annotated[Snippet, Depends(validate_snippet_id
 @router.delete("/{snippet_id}", status_code=204)
 async def delete_snippet(snippet: Annotated[Snippet, Depends(validate_snippet_id)]) -> None:
     await database.delete_snippet_by_id(snippet.id)
-
-
-@router.post("/search")
-async def search(
-    query: str = None, 
-    language: str = Query(default=None, alias="lang")
-) -> list[Snippet]:
-    return await database.temp_search(query, language)

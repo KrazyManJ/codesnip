@@ -58,3 +58,7 @@ async def temp_search(query: str = None, language: str = None):
         query_filter = {}
 
     return await snippets_collection.find(query_filter).to_list()
+
+
+async def get_all_languages():
+    return await snippets_collection.distinct("language")

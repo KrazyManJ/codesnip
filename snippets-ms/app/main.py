@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 
 from .routes import snippets_router
+from .services import database
+from .model.snippet import Snippet
 
 
 app = FastAPI()
@@ -12,3 +14,16 @@ def status():
 
 
 app.include_router(snippets_router.router)
+
+
+@app.post("/search")
+async def search(
+    query: str = None, 
+    language: str = Query(default=None, alias="lang")
+) -> list[Snippet]:
+    return await database.temp_search(query, language)
+
+
+@app.get("/langs")
+async def get_all_languages() -> list[str]:
+    return await database.get_all_languages()
