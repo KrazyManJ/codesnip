@@ -5,6 +5,7 @@ from app.main import app
 
 client = TestClient(app)
 
+
 def test_read_items():
     response = client.get("/snippets")
     assert response.status_code == 200
@@ -25,4 +26,5 @@ async def test_get_unknown_id():
     ) as ac:
         response = await ac.get(f"/snippets/{snippet_id}")
         assert response.status_code == 404
-        assert response.json()["detail"] == f"Snippet with id '{snippet_id}' not found"
+        assert response.json()[
+            "detail"] == f"Snippet with id '{snippet_id}' not found"

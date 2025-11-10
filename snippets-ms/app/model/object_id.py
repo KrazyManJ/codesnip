@@ -1,0 +1,40 @@
+from typing import Optional
+from bson import ObjectId
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
+
+
+class PyObjectId(str):
+    @classmethod
+    def __get_pydantic_core_schema__(cls, source_type, handler):
+        from pydantic_core import core_schema
+        return core_schema.union_schema([
+            core_schema.is_instance_schema(ObjectId),
+            core_schema.chain_schema([
+                core_schema.str_schema(),
+                core_schema.no_info_plain_validator_function(cls.validate),
+            ])
+        ])
+
+    @classmethod
+    def validate(cls, v):
+        if not ObjectId.is_valid(v):
+            raise ValueError("Invalid ObjectId")
+        return ObjectId(v)
+    
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
+        return {"type": "string"}
+    
+class ObjectIdBaseModel(BaseModel):
+    id: Optional[PyObjectId] = Field(default=None, alias="_id")
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        populate_by_name = True
+    )
+
+    @field_serializer('id')
+    def serialize_object_id(self, value: Optional[PyObjectId], _info):
+        if value is not None:
+            return str(value)
+        return value
