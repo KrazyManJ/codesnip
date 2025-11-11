@@ -5,7 +5,15 @@ from .services import database
 from .model.snippet import Snippet
 
 
-app = FastAPI()
+app = FastAPI(
+    title="CodeSnip Snippets API",
+    summary="CodeSnip service to provide and manage snippets, with ability to search them as well.",
+    version="1.0.0",
+    license_info={
+        "name": "MIT",
+        "url": "https://mit-license.org/"
+    }
+)
 
 
 @app.get("/", tags=["Status"])
