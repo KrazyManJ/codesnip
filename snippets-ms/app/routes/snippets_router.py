@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from typing import Annotated
 
 from ..model.snippet import Snippet, UploadSnippet
