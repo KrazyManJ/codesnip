@@ -1,5 +1,5 @@
 import pytest_asyncio
-from app.services.database import snippets_collection
+from app.services.snippet_service import snippets_collection
 
 @pytest_asyncio.fixture(autouse=True)
 async def before_and_after_each():
