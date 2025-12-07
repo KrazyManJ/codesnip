@@ -1,9 +1,11 @@
 import asyncio
+import os
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 from ..model.snippet import Snippet, UploadSnippet
 
-MONGO_URL = "mongodb://localhost:27017"
+# MONGO_URL = "mongodb://localhost:27017"
+MONGO_URL = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 client = AsyncIOMotorClient(MONGO_URL)
 client.get_io_loop = asyncio.get_event_loop
 db = client["codesnip"]

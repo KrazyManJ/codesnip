@@ -3,3 +3,13 @@ services:
         image: mongo:latest
         ports:
             - "27017:27017"
+    snippets:
+        build: ./snippets-ms
+        ports:
+            - "8000:8000"
+        depends_on:
+            - mongo
+        environment:
+            - MONGO_URI=mongodb://mongo:27017
+volumes:
+  mongo_data:
