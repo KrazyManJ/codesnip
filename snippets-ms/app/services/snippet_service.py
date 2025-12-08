@@ -2,7 +2,7 @@ import asyncio
 import os
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
-from ..model.snippet import Snippet, UploadSnippet
+from ..model.snippet import Snippet, UploadSnippet, SnippetDict
 
 # MONGO_URL = "mongodb://localhost:27017"
 MONGO_URL = os.getenv("MONGO_URI", "mongodb://localhost:27017")
@@ -12,8 +12,8 @@ db = client["codesnip"]
 snippets_collection = db["snippets"]
 
 
-async def add_snippet(snippet: Snippet):
-    result = await snippets_collection.insert_one(snippet.model_dump(mode="json"))
+async def add_snippet(snippet: SnippetDict) -> SnippetDict:
+    result = await snippets_collection.insert_one(snippet)
     return await snippets_collection.find_one({"_id": result.inserted_id})
 
 
@@ -25,10 +25,10 @@ async def get_snippet_by_id(snippet_id: ObjectId):
     return await snippets_collection.find_one({"_id": snippet_id})
 
 
-async def update_snippet_by_id(snippet_id: ObjectId, snippet_update: UploadSnippet):
+async def update_snippet_by_id(snippet_id: ObjectId, snippet_update: UploadSnippet) -> SnippetDict:
     result = await snippets_collection.find_one_and_update(
         {"_id": str(snippet_id)},
-        {"$set": snippet_update.model_dump()},
+        {"$set": snippet_update.model_dump(mode="json")},
         return_document=True
     )
     return result

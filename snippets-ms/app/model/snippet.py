@@ -1,8 +1,9 @@
 from datetime import datetime
 from enum import Enum
-from .object_id import ObjectIdBaseModel
-
 from pydantic import BaseModel, Field
+from typing import TypedDict
+
+from .object_id import ObjectIdBaseModel
 
 
 class Visibility(str, Enum):
@@ -17,6 +18,15 @@ class UploadSnippet(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
     visibility: Visibility = Visibility.PUBLIC
 
+
+class SnippetDict():
+    _id: str
+    title: str
+    description: str
+    code: str
+    language: str
+    created_at: str
+    visibility: str
 
 
 class Snippet(UploadSnippet, ObjectIdBaseModel):

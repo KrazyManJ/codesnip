@@ -2,6 +2,7 @@ import os
 import grpc
 import logging
 import search_pb2_grpc, search_pb2
+from ..model.snippet import Snippet
 
 SEARCH_SERVICE_ADDRESS = os.getenv("SEARCH_SERVICE_ADDRESS", "localhost:50051")
 
@@ -22,7 +23,7 @@ class SearchClient:
             await self.channel.close()
             logger.info("Search Service channel closed")
 
-    async def index_snippet(self, snippet_data):
+    async def index_snippet(self, snippet_data: Snippet):
         if not self.stub:
             logger.error("gRPC Client is not initialized!")
             return
@@ -50,7 +51,7 @@ class SearchClient:
 
         try:
             request = search_pb2.SearchRequest(
-                query=query,
+                query=query or "",
                 language_filter=language if language else "",
                 limit=20
             )
@@ -59,7 +60,7 @@ class SearchClient:
             results = []
             for res in response.results:
                 results.append({
-                    "id": res.id,
+                    "_id": res.id,
                     "title": res.title,
                     "language": res.language,
                     "match_preview": res.formatted_match

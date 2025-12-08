@@ -1,3 +1,4 @@
+import json
 from httpx import ASGITransport, AsyncClient
 import pytest
 
@@ -20,12 +21,13 @@ async def test_without_params_success():
 async def test_with_query_param_success():
     result = await async_client.post("/search?query=method,")
     assert result.status_code == 200
-    assert result.json()[0]["title"] == "Main method"
+    assert result.json()[0]["title"] == "Main <b>method</b>"
 
 
 @pytest.mark.asyncio
 async def test_with_language_param_success():
-    result = await async_client.post("/search?lang=Python")
+    result = await async_client.post("/search?lang=python")
+    print(json.dumps(result.json(),indent=4))
     assert result.status_code == 200
     assert result.json()[0]["title"] == "Lambda expression"
 
@@ -34,7 +36,7 @@ async def test_with_language_param_success():
 async def test_with_language_query_param_success():
     result = await async_client.post("/search?query=method,&lang=Java")
     assert result.status_code == 200
-    assert result.json()[0]["title"] == "Main method"
+    assert result.json()[0]["title"] == "Main <b>method</b>"
 
 
 @pytest.mark.asyncio

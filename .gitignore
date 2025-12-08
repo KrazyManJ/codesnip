@@ -1,6 +1,9 @@
 __pycache__
 .env
 
+# project settings
+.vscode
+
 # generated gRPC
 search_pb2.py
 search_pb2_grpc.py

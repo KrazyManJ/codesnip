@@ -5,11 +5,12 @@ from .routes import snippets_router
 from .services import snippet_service
 from .init_db import seed_data
 from .services.search_service import search_client
+from .model.search import SearchResult
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await search_client.start()
-    await seed_data()
+    # await seed_data()
     yield
     await search_client.close()
 
@@ -38,7 +39,7 @@ app.include_router(snippets_router.router)
 async def search(
     query: str = None, 
     language: str = Query(default=None, alias="lang")
-) -> list:
+) -> list[SearchResult]:
     return await search_client.search(query, language)
 
 
