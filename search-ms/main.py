@@ -93,6 +93,15 @@ class SearchService(search_pb2_grpc.SearchServiceServicer):
         except Exception as e:
             logger.error(f"Search failed: {e}")
             return search_pb2.SearchResponse(results=[])
+        
+    def DeleteSnippet(self, request, context):
+        try:
+            self.client.index(self.index_name).delete_document(request.id)
+            logger.info(f"Deleted snippet from index: {request.id}")
+            return search_pb2.DeleteResponse(success=True)
+        except Exception as e:
+            logger.error(f"Failed to delete snippet {request.id}: {e}")
+            return search_pb2.DeleteResponse(success=False)
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

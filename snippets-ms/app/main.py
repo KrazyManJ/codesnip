@@ -3,7 +3,6 @@ from fastapi.concurrency import asynccontextmanager
 
 from .routes import snippets_router
 from .services import snippet_service
-from .model.snippet import Snippet
 from .init_db import seed_data
 from .services.search_service import search_client
 

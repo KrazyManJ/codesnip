@@ -69,5 +69,22 @@ class SearchClient:
         except grpc.RpcError as e:
             logger.error(f"gRPC error: {e}")
             return []
+        
+    async def delete_snippet(self, snippet_id: str):
+        if not self.stub:
+            logger.error("gRPC Client not initialized")
+            return
+
+        try:
+            request = search_pb2.DeleteSnippetRequest(id=snippet_id)
+            response = await self.stub.DeleteSnippet(request)
+            
+            if response.success:
+                logger.info(f"Snippet {snippet_id} deleted from index.")
+            else:
+                logger.warning(f"Failed to delete snippet {snippet_id} from index.")
+                
+        except grpc.RpcError as e:
+            logger.error(f"gRPC error during delete: {e}")
 
 search_client = SearchClient()

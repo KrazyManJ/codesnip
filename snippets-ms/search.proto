@@ -5,6 +5,7 @@ package search;
 service SearchService {
     rpc Search (SearchRequest) returns (SearchResponse);
     rpc IndexSnippet (SnippetDocument) returns (IndexResponse);
+    rpc DeleteSnippet (DeleteSnippetRequest) returns (DeleteResponse);
 }
 
 message SearchRequest {
@@ -34,5 +35,13 @@ message SearchResult {
 }
 
 message IndexResponse {
+    bool success = 1;
+}
+
+message DeleteSnippetRequest {
+    string id = 1;
+}
+
+message DeleteResponse {
     bool success = 1;
 }
