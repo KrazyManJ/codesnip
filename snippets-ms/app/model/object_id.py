@@ -38,3 +38,8 @@ class ObjectIdBaseModel(BaseModel):
         if value is not None:
             return str(value)
         return value
+    
+    def model_dump(self, **kwargs):
+        kwargs.setdefault('by_alias', True)
+        kwargs.setdefault('mode', "json")
+        return super().model_dump(**kwargs)
