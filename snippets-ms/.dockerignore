@@ -3,3 +3,5 @@
 __pycache__
 .pyc
 .pytest_cache
+search_pb2.py
+search_pb2_grpc.py

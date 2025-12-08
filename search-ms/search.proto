@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package search;
+
+service SearchService {
+    rpc Search (SearchRequest) returns (SearchResponse);
+    rpc IndexSnippet (SnippetDocument) returns (IndexResponse);
+}
+
+message SearchRequest {
+    string query = 1;
+    string language_filter = 2;
+    string user_id = 3;
+    int32 limit = 4;
+}
+
+message SnippetDocument {
+    string id = 1;
+    string title = 2;
+    string description = 3;
+    string code = 4;
+    string language = 5;
+}
+
+message SearchResponse {
+    repeated SearchResult results = 1;
+}
+
+message SearchResult {
+    string id = 1;
+    string title = 2;
+    string language = 3;
+    string formatted_match = 4; 
+}
+
+message IndexResponse {
+    bool success = 1;
+}

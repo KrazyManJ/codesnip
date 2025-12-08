@@ -3,7 +3,16 @@ services:
         image: mongo:latest
         ports:
             - "27017:27017"
-    snippets:
+    meilisearch:
+        image: getmeili/meilisearch:v1.5
+        ports:
+            - "7700:7700"
+        environment:
+            - MEILI_NO_ANALYTICS=true
+            - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+        volumes:
+            - meili_data:/meili_data
+    snippets-service:
         build: ./snippets-ms
         ports:
             - "8000:8000"
@@ -11,5 +20,16 @@ services:
             - mongo
         environment:
             - MONGO_URI=mongodb://mongo:27017
+            - SEARCH_SERVICE_ADDRESS=search-service:50051
+    search-service:
+        build: ./search-ms
+        ports:
+            - "50051:50051"
+        depends_on:
+            - meilisearch
+        environment:
+            - MEILI_HOST=http://meilisearch:7700
+            - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
 volumes:
   mongo_data:
+  meili_data:
