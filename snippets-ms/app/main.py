@@ -1,8 +1,16 @@
 from fastapi import FastAPI, Query
+from fastapi.concurrency import asynccontextmanager
 
 from .routes import snippets_router
 from .services import snippet_service
 from .model.snippet import Snippet
+from .init_db import seed_data
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await seed_data()
+    yield
 
 
 app = FastAPI(
@@ -12,7 +20,8 @@ app = FastAPI(
     license_info={
         "name": "MIT",
         "url": "https://mit-license.org/"
-    }
+    },
+    lifespan=lifespan
 )
 
 
