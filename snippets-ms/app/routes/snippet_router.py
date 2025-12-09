@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from typing import Annotated
 
 from ..model.snippet import Snippet, UploadSnippet
@@ -24,12 +24,24 @@ async def all_snippets() -> list[Snippet]:
     return await snippet_service.get_all_snippets()
 
 
-@snippets_router.get("/{snippet_id}")
+@snippets_router.get(
+    path = "/{snippet_id}",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "When provided id is not in `ObjectId` format"},
+        status.HTTP_404_NOT_FOUND: {"description": "When desired snippet by id was not found"}
+    }
+)
 async def get_snippet(snippet: Annotated[Snippet, Depends(validate_snippet_id)]) -> Snippet:
     return snippet
 
 
-@snippets_router.put("/{snippet_id}")
+@snippets_router.put(
+    path="/{snippet_id}",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "When provided id is not in `ObjectId` format"},
+        status.HTTP_404_NOT_FOUND: {"description": "When desired snippet by id was not found"}
+    }
+)
 async def update_snippet(
     snippet: Annotated[Snippet, Depends(validate_snippet_id)],
     snippet_update: UploadSnippet,
@@ -38,7 +50,14 @@ async def update_snippet(
     return await snippet_service.update_snippet_by_id(snippet.id, snippet_update, background_tasks)
 
 
-@snippets_router.delete("/{snippet_id}", status_code=204)
+@snippets_router.delete(
+    path="/{snippet_id}", 
+    status_code=204,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "When provided id is not in `ObjectId` format"},
+        status.HTTP_404_NOT_FOUND: {"description": "When desired snippet by id was not found"}
+    }
+)
 async def delete_snippet(
     snippet: Annotated[Snippet, Depends(validate_snippet_id)],
     background_tasks: BackgroundTasks
