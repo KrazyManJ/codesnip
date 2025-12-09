@@ -80,7 +80,7 @@ async def get_all_languages() -> list[str]:
 
 
 @router.get("/stats")
-async def get_stats() -> Stats:
+async def get_snippet_statistics() -> Stats:
     return await snippet_service.get_stats()
 
 
