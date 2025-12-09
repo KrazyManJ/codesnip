@@ -8,7 +8,7 @@ SEARCH_SERVICE_ADDRESS = os.getenv("SEARCH_SERVICE_ADDRESS", "localhost:50051")
 
 logger = logging.getLogger(__name__)
 
-class SearchClient:
+class GRPCSearchConnector:
     def __init__(self):
         self.channel = None
         self.stub = None
@@ -88,4 +88,5 @@ class SearchClient:
         except grpc.RpcError as e:
             logger.error(f"gRPC error during delete: {e}")
 
-search_client = SearchClient()
+
+search_connector_client = GRPCSearchConnector()

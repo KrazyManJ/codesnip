@@ -1,9 +1,10 @@
 
 from bson import ObjectId
 from fastapi import BackgroundTasks
-from .search_service import search_client
+from ..connectors.grpc_search_connector import search_connector_client
 from ..repositories import snippet_repository
 from ..model.snippet import UploadSnippet, SnippetDict, Snippet
+from ..model.search import SearchResultDict
 
 
 async def add_snippet(
@@ -12,9 +13,9 @@ async def add_snippet(
 ) -> SnippetDict:
     result_snippet = await snippet_repository.add_snippet(snippet.model_dump(mode="json"))
     if background_tasks:
-        background_tasks.add_task(search_client.index_snippet, Snippet(**result_snippet))
+        background_tasks.add_task(search_connector_client.index_snippet, Snippet(**result_snippet))
     else:
-        await search_client.index_snippet(Snippet(**result_snippet))
+        await search_connector_client.index_snippet(Snippet(**result_snippet))
     return result_snippet
 
 
@@ -34,9 +35,9 @@ async def update_snippet_by_id(
     updated_snippet = await snippet_repository.update_snippet_by_id(snippet_id, snippet_update)
     print(updated_snippet)
     if background_tasks:
-        background_tasks.add_task(search_client.index_snippet, Snippet(**updated_snippet))
+        background_tasks.add_task(search_connector_client.index_snippet, Snippet(**updated_snippet))
     else:
-        await search_client.index_snippet(Snippet(**updated_snippet))
+        await search_connector_client.index_snippet(Snippet(**updated_snippet))
     return updated_snippet
 
 
@@ -49,10 +50,14 @@ async def delete_snippet_by_id(
         return
     
     if background_tasks:
-        background_tasks.add_task(search_client.delete_snippet, str(snippet_id))
+        background_tasks.add_task(search_connector_client.delete_snippet, str(snippet_id))
     else:
-        await search_client.delete_snippet(str(snippet_id))
-        
+        await search_connector_client.delete_snippet(str(snippet_id))
+
+
+async def search(query: str,language: str = None) -> SearchResultDict:
+    return await search_connector_client.search(query, language)
+
 
 async def get_all_languages() -> list[str]:
     return await snippet_repository.get_all_languages()

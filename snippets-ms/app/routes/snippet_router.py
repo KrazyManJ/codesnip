@@ -5,7 +5,6 @@ from typing import Annotated
 from ..model.snippet import Snippet, UploadSnippet
 from ..model.search import SearchResult
 from ..services import snippet_service
-from ..services.search_service import search_client
 from ..dependencies import validate_snippet_id
 
 
@@ -52,7 +51,7 @@ async def search(
     query: str = None,
     language: str = Query(default=None, alias="lang")
 ) -> list[SearchResult]:
-    return await search_client.search(query, language)
+    return await snippet_service.search(query, language)
 
 
 @router.get("/langs")

@@ -1,16 +1,16 @@
-from fastapi import FastAPI
+from fastapi import BackgroundTasks, FastAPI
 from fastapi.concurrency import asynccontextmanager
 
 from .routes import snippet_router
-from .init_db import seed_data
-from .services.search_service import search_client
+from .init_db import seed_data_if_empty
+from .connectors.grpc_search_connector import search_connector_client
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await search_client.start()
-    # await seed_data()
+    await search_connector_client.start()
+    await seed_data_if_empty()
     yield
-    await search_client.close()
+    await search_connector_client.close()
 
 
 app = FastAPI(

@@ -2,7 +2,7 @@ from bson import ObjectId
 import pytest_asyncio
 from app.repositories.snippet_repository import snippets_collection
 from app.model.snippet import Snippet
-from app.services.search_service import search_client
+from app.connectors.grpc_search_connector import search_connector_client
 from .utils import meili_utils
 
 test_snippets = [
@@ -29,14 +29,14 @@ test_snippets = [
 
 @pytest_asyncio.fixture(autouse=True)
 async def before_and_after_each():
-    await search_client.start()
+    await search_connector_client.start()
     await snippets_collection.delete_many({})
     await meili_utils.clear_meilisearch()
     await snippets_collection.insert_many([s.model_dump(mode="json") for s in test_snippets])
     for snippet in test_snippets:
-        await search_client.index_snippet(snippet)
+        await search_connector_client.index_snippet(snippet)
     await meili_utils.wait_for_meili_indexing(len(test_snippets))
     yield
     await snippets_collection.delete_many({})
     await meili_utils.clear_meilisearch()
-    await search_client.close()
+    await search_connector_client.close()

@@ -1,10 +1,9 @@
 from bson import ObjectId
-from app.repositories.snippet_repository import snippets_collection, add_snippet
-from app.services.search_service import search_client
+from app.services import snippet_service
 from app.model.snippet import Snippet
 
-async def seed_data():
-    count = await snippets_collection.count_documents({})
+async def seed_data_if_empty():
+    count = len(await snippet_service.get_all_snippets())
     
     if (count > 0):
         return
@@ -32,5 +31,6 @@ async def seed_data():
     
     
     for snippet in snippets:
-        await search_client.index_snippet(snippet)
-        await add_snippet(snippet)
+        await snippet_service.add_snippet(snippet)
+        
+    print("Data initialized!")
