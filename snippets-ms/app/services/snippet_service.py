@@ -1,66 +1,58 @@
-import asyncio
-import os
+
 from bson import ObjectId
-from motor.motor_asyncio import AsyncIOMotorClient
-from ..model.snippet import Snippet, UploadSnippet, SnippetDict
-
-# MONGO_URL = "mongodb://localhost:27017"
-MONGO_URL = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-client = AsyncIOMotorClient(MONGO_URL)
-client.get_io_loop = asyncio.get_event_loop
-db = client["codesnip"]
-snippets_collection = db["snippets"]
+from fastapi import BackgroundTasks
+from .search_service import search_client
+from ..repositories import snippet_repository
+from ..model.snippet import UploadSnippet, SnippetDict, Snippet
 
 
-async def add_snippet(snippet: SnippetDict) -> SnippetDict:
-    result = await snippets_collection.insert_one(snippet)
-    return await snippets_collection.find_one({"_id": result.inserted_id})
-
-
-async def get_all_snippets():
-    return await snippets_collection.find().to_list()
-
-
-async def get_snippet_by_id(snippet_id: ObjectId):
-    return await snippets_collection.find_one({"_id": snippet_id})
-
-
-async def update_snippet_by_id(snippet_id: ObjectId, snippet_update: UploadSnippet) -> SnippetDict:
-    result = await snippets_collection.find_one_and_update(
-        {"_id": str(snippet_id)},
-        {"$set": snippet_update.model_dump(mode="json")},
-        return_document=True
-    )
-    return result
-
-
-async def delete_snippet_by_id(snippet_id: ObjectId):
-    return await snippets_collection.delete_one({"_id": str(snippet_id)})
-
-
-async def temp_search(query: str = None, language: str = None):
-
-    filters = []
-
-    if query:
-        filters.append({
-            "$or": [
-                {"title": {"$regex": query, "$options": "i"}},
-                {"description": {"$regex": query, "$options": "i"}},
-                {"code": {"$regex": query, "$options": "i"}}
-            ]
-        })
-
-    if language:
-        filters.append({"language": {"$regex": f'^{language}$', "$options": "i"}})
-
-    if filters:
-        query_filter = {"$and": filters} if len(filters) > 1 else filters[0]
+async def add_snippet(
+    snippet: UploadSnippet,
+    background_tasks: BackgroundTasks = None
+) -> SnippetDict:
+    result_snippet = await snippet_repository.add_snippet(snippet.model_dump(mode="json"))
+    if background_tasks:
+        background_tasks.add_task(search_client.index_snippet, Snippet(**result_snippet))
     else:
-        query_filter = {}
+        await search_client.index_snippet(Snippet(**result_snippet))
+    return result_snippet
 
-    return await snippets_collection.find(query_filter).to_list()
+
+async def get_all_snippets() -> list[SnippetDict]:
+    return await snippet_repository.get_all_snippets()
 
 
-async def get_all_languages():
-    return await snippets_collection.distinct("language")
+async def get_snippet_by_id(snippet_id: ObjectId) -> SnippetDict:
+    return await snippet_repository.get_snippet_by_id(snippet_id)
+
+
+async def update_snippet_by_id(
+    snippet_id: ObjectId,
+    snippet_update: UploadSnippet,
+    background_tasks: BackgroundTasks = None
+) -> SnippetDict:
+    updated_snippet = await snippet_repository.update_snippet_by_id(snippet_id, snippet_update)
+    print(updated_snippet)
+    if background_tasks:
+        background_tasks.add_task(search_client.index_snippet, Snippet(**updated_snippet))
+    else:
+        await search_client.index_snippet(Snippet(**updated_snippet))
+    return updated_snippet
+
+
+async def delete_snippet_by_id(
+    snippet_id: ObjectId,
+    background_tasks: BackgroundTasks = None
+) -> None:
+    delete_result = await snippet_repository.delete_snippet_by_id(snippet_id)
+    if delete_result.deleted_count == 0:
+        return
+    
+    if background_tasks:
+        background_tasks.add_task(search_client.delete_snippet, str(snippet_id))
+    else:
+        await search_client.delete_snippet(str(snippet_id))
+        
+
+async def get_all_languages() -> list[str]:
+    return await snippet_repository.get_all_languages()

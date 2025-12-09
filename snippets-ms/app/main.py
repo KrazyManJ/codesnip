@@ -1,11 +1,9 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI
 from fastapi.concurrency import asynccontextmanager
 
-from .routes import snippets_router
-from .services import snippet_service
+from .routes import snippet_router
 from .init_db import seed_data
 from .services.search_service import search_client
-from .model.search import SearchResult
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -32,4 +30,4 @@ def status():
     return {"status": "OK"}
 
 
-app.include_router(snippets_router.router)
+app.include_router(snippet_router.router)

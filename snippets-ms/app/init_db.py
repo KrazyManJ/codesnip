@@ -1,5 +1,5 @@
 from bson import ObjectId
-from app.services.snippet_service import add_snippet, snippets_collection
+from app.repositories.snippet_repository import snippets_collection, add_snippet
 from app.services.search_service import search_client
 from app.model.snippet import Snippet
 

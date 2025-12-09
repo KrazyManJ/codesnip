@@ -10,6 +10,7 @@ class Visibility(str, Enum):
     PUBLIC = "public"
     PRIVATE = "private"
 
+
 class UploadSnippet(BaseModel):
     title: str
     description: str
@@ -20,6 +21,9 @@ class UploadSnippet(BaseModel):
 
 
 class SnippetDict():
+    """
+    Is used for return value of Snippet model, and for repository
+    """
     _id: str
     title: str
     description: str
