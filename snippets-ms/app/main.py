@@ -33,16 +33,3 @@ def status():
 
 
 app.include_router(snippets_router.router)
-
-
-@app.post("/search", tags=["Snippets"])
-async def search(
-    query: str = None, 
-    language: str = Query(default=None, alias="lang")
-) -> list[SearchResult]:
-    return await search_client.search(query, language)
-
-
-@app.get("/langs", tags=["Snippets"])
-async def get_all_languages() -> list[str]:
-    return await snippet_service.get_all_languages()
