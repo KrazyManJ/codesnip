@@ -3,6 +3,7 @@ import grpc
 import logging
 import search_pb2_grpc, search_pb2
 from ..model.snippet import Snippet
+from google.protobuf.json_format import MessageToDict
 
 SEARCH_SERVICE_ADDRESS = os.getenv("SEARCH_SERVICE_ADDRESS", "localhost:50051")
 
@@ -57,15 +58,12 @@ class GRPCSearchConnector:
             )
             response = await self.stub.Search(request)
             
-            results = []
-            for res in response.results:
-                results.append({
-                    "_id": res.id,
-                    "title": res.title,
-                    "language": res.language,
-                    "match_preview": res.formatted_match
-                })
-            return results
+            response_dict = MessageToDict(
+                response,
+                preserving_proto_field_name=True,
+                always_print_fields_with_no_presence=True
+            )
+            return response_dict.get('results', [])
 
         except grpc.RpcError as e:
             logger.error(f"gRPC error: {e}")
