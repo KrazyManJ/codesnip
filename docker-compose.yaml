@@ -2,13 +2,16 @@ services:
     mongo:
         image: mongo:latest
         ports:
-            - "27017:27017"
+            - "127.0.0.1:27017:27017"
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER} 
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
         volumes:
             - mongo_data:/mongo_data
     meilisearch:
         image: getmeili/meilisearch:v1.5
         ports:
-            - "7700:7700"
+            - "127.0.0.1:7700:7700"
         environment:
             - MEILI_NO_ANALYTICS=true
             - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
@@ -21,12 +24,15 @@ services:
         depends_on:
             - mongo
         environment:
-            - MONGO_URI=mongodb://mongo:27017
+            - MONGO_HOST=mongo
+            - MONGO_USER=${MONGO_USER}
+            - MONGO_PASSWORD=${MONGO_PASSWORD}
+            - GRPC_SECRET_KEY=${GRPC_SECRET_KEY}
             - SEARCH_SERVICE_ADDRESS=search-service:50051
     search-service:
         build: ./search-ms
         ports:
-            - "50051:50051"
+            - "127.0.0.1:50051:50051"
         depends_on:
             - meilisearch
         environment:

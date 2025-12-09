@@ -5,10 +5,20 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.results import DeleteResult
 from ..model.snippet import UploadSnippet, SnippetDict
 
+from dotenv import load_dotenv
 
-MONGO_URL = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+load_dotenv()
+
+MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
+MONGO_USER = os.environ.get("MONGO_USER")
+MONGO_PASSWORD = os.environ.get("MONGO_PASSWORD")
+
+MONGO_URL = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:27017/admin?authSource=admin"
+
 client = AsyncIOMotorClient(MONGO_URL)
 client.get_io_loop = asyncio.get_event_loop
+
+
 snippets_collection = client["codesnip"]["snippets"]
 
 
