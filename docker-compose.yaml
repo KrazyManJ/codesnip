@@ -27,7 +27,6 @@ services:
             - MONGO_HOST=mongo
             - MONGO_USER=${MONGO_USER}
             - MONGO_PASSWORD=${MONGO_PASSWORD}
-            - GRPC_SECRET_KEY=${GRPC_SECRET_KEY}
             - SEARCH_SERVICE_ADDRESS=search-service:50051
     search-service:
         build: ./search-ms
