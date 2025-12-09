@@ -40,3 +40,50 @@ async def delete_snippet_by_id(snippet_id: ObjectId) -> DeleteResult:
 
 async def get_all_languages() -> list[str]:
     return await snippets_collection.distinct("language")
+
+
+async def get_stats():
+    pipeline = [
+        {
+            "$facet": {
+                "lang_stats": [
+                    {
+                        "$group": {
+                            "_id": "$language",
+                            "lang": {"$first": "$language"},
+                            "snippets_count": {"$sum": 1},
+                            "total_bytes": {"$sum": {"$strLenBytes": "$code"}}
+                        }
+                    },
+                    {
+                        "$project": {
+                            "_id": 0
+                        }
+                    }
+                ],
+                "total_count": [
+                    {
+                        "$count": "total_snippets_count"
+                    }
+                ],
+                "total_bytes_grand": [
+                    {
+                        "$group": {
+                            "_id": None,
+                            "total_bytes": {"$sum": {"$strLenBytes": "$code"}}
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "$project": {
+                "total_snippets_count": {"$first": "$total_count.total_snippets_count"},
+                "total_bytes": {"$first": "$total_bytes_grand.total_bytes"},
+                "languages_data": "$lang_stats",
+                "_id": 0
+            }
+        }
+    ]
+    results = await snippets_collection.aggregate(pipeline).to_list(length=1)
+    return results[0] if results else None

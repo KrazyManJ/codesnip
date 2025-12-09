@@ -4,6 +4,7 @@ from typing import Annotated
 
 from ..model.snippet import Snippet, UploadSnippet
 from ..model.search import SearchResult
+from ..model.stats import Stats
 from ..services import snippet_service
 from ..dependencies import validate_snippet_id
 
@@ -76,6 +77,11 @@ async def search(
 @router.get("/langs")
 async def get_all_languages() -> list[str]:
     return await snippet_service.get_all_languages()
+
+
+@router.get("/stats")
+async def get_stats() -> Stats:
+    return await snippet_service.get_stats()
 
 
 router.include_router(snippets_router)

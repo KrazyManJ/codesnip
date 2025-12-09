@@ -60,3 +60,7 @@ async def search(query: str,language: str = None) -> SearchResultDict:
 
 async def get_all_languages() -> list[str]:
     return await snippet_repository.get_all_languages()
+
+
+async def get_stats():
+    return await snippet_repository.get_stats()
