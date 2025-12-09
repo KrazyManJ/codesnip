@@ -25,21 +25,30 @@ class PyObjectId(str):
     def __get_pydantic_json_schema__(cls, core_schema, handler):
         return {"type": "string"}
     
+
 class ObjectIdBaseModel(BaseModel):
-    id: Optional[PyObjectId] = Field(default=None, alias="_id")
+    id: Optional[PyObjectId] = Field(default=None, validation_alias="_id")
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
-        populate_by_name = True
+        populate_by_name=True
     )
 
     @field_serializer('id')
     def serialize_object_id(self, value: Optional[PyObjectId], _info):
         if value is not None:
-            return str(value)
+            return str(value)    
         return value
     
     def model_dump(self, **kwargs):
         kwargs.setdefault('by_alias', True)
         kwargs.setdefault('mode', "json")
         return super().model_dump(**kwargs)
+    
+    def to_mongo(self, **kwargs):
+        parsed = self.model_dump()
+        
+        if 'id' in parsed:
+            parsed['_id'] = parsed.pop('id')
+            
+        return parsed

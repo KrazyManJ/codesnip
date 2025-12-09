@@ -27,7 +27,6 @@ async def test_with_query_param_success():
 @pytest.mark.asyncio
 async def test_with_language_param_success():
     result = await async_client.post("/search?lang=python")
-    print(json.dumps(result.json(),indent=4))
     assert result.status_code == 200
     assert result.json()[0]["title"] == "Lambda expression"
 

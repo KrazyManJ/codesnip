@@ -22,7 +22,7 @@ async def get_all_snippets():
 
 
 async def get_snippet_by_id(snippet_id: ObjectId) -> SnippetDict | None:
-    return await snippets_collection.find_one({"_id": snippet_id})
+    return await snippets_collection.find_one({"_id": str(snippet_id)})
 
 
 async def update_snippet_by_id(snippet_id: ObjectId, snippet_update: UploadSnippet) -> SnippetDict:

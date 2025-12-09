@@ -23,8 +23,8 @@ async def get_all_snippets() -> list[SnippetDict]:
     return await snippet_repository.get_all_snippets()
 
 
-async def get_snippet_by_id(snippet_id: ObjectId) -> SnippetDict:
-    return await snippet_repository.get_snippet_by_id(snippet_id)
+async def get_snippet_by_id(snippet_id: str) -> SnippetDict:
+    return await snippet_repository.get_snippet_by_id(ObjectId(snippet_id))
 
 
 async def update_snippet_by_id(
@@ -33,7 +33,6 @@ async def update_snippet_by_id(
     background_tasks: BackgroundTasks = None
 ) -> SnippetDict:
     updated_snippet = await snippet_repository.update_snippet_by_id(snippet_id, snippet_update)
-    print(updated_snippet)
     if background_tasks:
         background_tasks.add_task(search_connector_client.index_snippet, Snippet(**updated_snippet))
     else:

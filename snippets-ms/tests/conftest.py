@@ -7,7 +7,7 @@ from .utils import meili_utils
 
 test_snippets = [
     Snippet(
-        _id = ObjectId("6911c38853ed167b0b3cf306"),
+        id = ObjectId("6911c38853ed167b0b3cf306"),
         title = "Lambda expression",
         description = "Function as parameter",
         code = "lambda: print('hello_world')",
@@ -16,7 +16,7 @@ test_snippets = [
         visibility = "public"
     ),
     Snippet(
-        _id = ObjectId("6911c4059f5ace328a43261b"),
+        id = ObjectId("6911c4059f5ace328a43261b"),
         title = "Main method",
         description = "Method, where code executes",
         code = "class Program {\n\tpublic static void main(String[] args) {\n\t\t\n\t}\n}",
@@ -32,7 +32,7 @@ async def before_and_after_each():
     await search_connector_client.start()
     await snippets_collection.delete_many({})
     await meili_utils.clear_meilisearch()
-    await snippets_collection.insert_many([s.model_dump(mode="json") for s in test_snippets])
+    await snippets_collection.insert_many([s.to_mongo() for s in test_snippets])
     for snippet in test_snippets:
         await search_connector_client.index_snippet(snippet)
     await meili_utils.wait_for_meili_indexing(len(test_snippets))
