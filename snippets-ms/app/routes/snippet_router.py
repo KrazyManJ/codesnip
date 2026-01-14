@@ -1,11 +1,11 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, status, HTTPException
+from fastapi import APIRouter, Depends, Query, status, HTTPException
 from typing import Annotated
 
 from ..model.snippet import Snippet, UploadSnippet, User
 from ..model.search import SearchResult
 from ..model.stats import Stats
-from ..services import snippet_service
-from ..dependencies import validate_snippet_id
+from ..services.snippet_service import SnippetService
+from ..dependencies import validate_snippet_id, get_snippet_service
 from ..auth import get_current_user
 from fastapi_pagination import Page, paginate
 
@@ -21,23 +21,36 @@ snippets_router = APIRouter(prefix="/snippets")
 )
 async def upload_snippet(
     snippet: UploadSnippet,
-    background_tasks: BackgroundTasks,
-    user: Annotated[User, Depends(get_current_user)]
+    user: Annotated[User, Depends(get_current_user)],
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
 ):
     full_snippet = Snippet(
         author=user,
         **snippet.model_dump()
     )
     
-    return await snippet_service.add_snippet(full_snippet, background_tasks)
+    return await snippet_service.add_snippet(full_snippet)
 
 
 @snippets_router.get(
     path="", 
     response_model=Page[Snippet]
 )
-async def all_snippets():
+async def all_snippets(
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
+):
     return paginate(await snippet_service.get_all_snippets())
+
+
+@snippets_router.get(
+    path="/me",
+    response_model=Page[Snippet],
+)
+async def get_snippets_of_user(
+    user: Annotated[User, Depends(get_current_user)],
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
+):
+    return paginate(await snippet_service.get_all_user_snippets(user.id))
 
 
 @snippets_router.get(
@@ -63,8 +76,8 @@ async def get_snippet(snippet: Annotated[Snippet, Depends(validate_snippet_id)])
 async def update_snippet(
     snippet: Annotated[Snippet, Depends(validate_snippet_id)],
     snippet_update: UploadSnippet,
-    background_tasks: BackgroundTasks,
-    user: Annotated[User, Depends(get_current_user)]
+    user: Annotated[User, Depends(get_current_user)],
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
 ):
     if user.id != snippet.author.id:
         raise HTTPException(
@@ -72,7 +85,7 @@ async def update_snippet(
             detail="You are not authorized to perform this action"
         )
     
-    return await snippet_service.update_snippet_by_id(snippet.id, snippet_update, background_tasks)
+    return await snippet_service.update_snippet_by_id(snippet.id, snippet_update)
 
 
 @snippets_router.delete(
@@ -85,8 +98,8 @@ async def update_snippet(
 )
 async def delete_snippet(
     snippet: Annotated[Snippet, Depends(validate_snippet_id)],
-    background_tasks: BackgroundTasks,
-    user: Annotated[User, Depends(get_current_user)]
+    user: Annotated[User, Depends(get_current_user)],
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
 ):
     if user.id != snippet.author.id:
         raise HTTPException(
@@ -94,7 +107,7 @@ async def delete_snippet(
             detail="You are not authorized to perform this action"
         )
     
-    return await snippet_service.delete_snippet_by_id(snippet.id, background_tasks)
+    return await snippet_service.delete_snippet_by_id(snippet.id)
 
 
 @router.post(
@@ -102,6 +115,7 @@ async def delete_snippet(
     response_model=list[SearchResult]
 )
 async def search(
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)],
     query: str = None,
     language: str = Query(default=None, alias="lang")
 ):
@@ -112,7 +126,9 @@ async def search(
     path="/langs",
     response_model=list[str]
 )
-async def get_all_languages():
+async def get_all_languages(
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
+):
     return await snippet_service.get_all_languages()
 
 
@@ -120,7 +136,9 @@ async def get_all_languages():
     path="/stats",
     response_model=Stats
 )
-async def get_snippet_statistics():
+async def get_snippet_statistics(
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
+):
     return await snippet_service.get_stats()
 
 

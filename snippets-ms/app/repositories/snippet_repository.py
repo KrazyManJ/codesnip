@@ -1,99 +1,87 @@
-import asyncio
-import os
 from bson import ObjectId
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.asynchronous.collection import AsyncCollection
 from pymongo.results import DeleteResult
+
 from ..model.snippet import UploadSnippet, SnippetDict
 
-from dotenv import load_dotenv
 
-load_dotenv()
+class SnippetRepository:
 
-MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
-MONGO_USER = os.environ.get("MONGO_USER")
-MONGO_PASSWORD = os.environ.get("MONGO_PASSWORD")
+    def __init__(self, collection: AsyncCollection):
+        self.collection = collection
 
-MONGO_URL = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:27017/admin?authSource=admin"
+    async def add_snippet(self, snippet: SnippetDict) -> SnippetDict:
+        result = await self.collection.insert_one(snippet)
+        return await self.collection.find_one({"_id": result.inserted_id})
 
-client = AsyncIOMotorClient(MONGO_URL)
-client.get_io_loop = asyncio.get_event_loop
+    async def get_all_public_snippets(self):
+        return await self.collection.find({"visibility": "public"}).to_list()
 
+    async def get_snippet_by_id(self, snippet_id: ObjectId) -> SnippetDict | None:
+        return await self.collection.find_one({"_id": str(snippet_id)})
 
-snippets_collection = client["codesnip"]["snippets"]
+    async def update_snippet_by_id(self, snippet_id: ObjectId, snippet_update: UploadSnippet) -> SnippetDict:
+        result = await self.collection.find_one_and_update(
+            {"_id": str(snippet_id)},
+            {"$set": snippet_update.model_dump(mode="json")},
+            return_document=True
+        )
+        return result
 
+    async def delete_snippet_by_id(self, snippet_id: ObjectId) -> DeleteResult:
+        return await self.collection.delete_one({"_id": str(snippet_id)})
 
-async def add_snippet(snippet: SnippetDict) -> SnippetDict:
-    result = await snippets_collection.insert_one(snippet)
-    return await snippets_collection.find_one({"_id": result.inserted_id})
+    async def get_all_languages(self) -> list[str]:
+        return await self.collection.distinct("language")
 
-
-async def get_all_snippets():
-    return await snippets_collection.find().to_list()
-
-
-async def get_snippet_by_id(snippet_id: ObjectId) -> SnippetDict | None:
-    return await snippets_collection.find_one({"_id": str(snippet_id)})
-
-
-async def update_snippet_by_id(snippet_id: ObjectId, snippet_update: UploadSnippet) -> SnippetDict:
-    result = await snippets_collection.find_one_and_update(
-        {"_id": str(snippet_id)},
-        {"$set": snippet_update.model_dump(mode="json")},
-        return_document=True
-    )
-    return result
-
-
-async def delete_snippet_by_id(snippet_id: ObjectId) -> DeleteResult:
-    return await snippets_collection.delete_one({"_id": str(snippet_id)})
-
-
-async def get_all_languages() -> list[str]:
-    return await snippets_collection.distinct("language")
-
-
-async def get_stats():
-    pipeline = [
-        {
-            "$facet": {
-                "lang_stats": [
-                    {
-                        "$group": {
-                            "_id": "$language",
-                            "lang": {"$first": "$language"},
-                            "snippets_count": {"$sum": 1},
-                            "total_bytes": {"$sum": {"$strLenBytes": "$code"}}
+    async def get_stats(self):
+        pipeline = [
+            {
+                "$facet": {
+                    "lang_stats": [
+                        {
+                            "$group": {
+                                "_id": "$language",
+                                "lang": {"$first": "$language"},
+                                "snippets_count": {"$sum": 1},
+                                "total_bytes": {"$sum": {"$strLenBytes": "$code"}}
+                            }
+                        },
+                        {
+                            "$project": {
+                                "_id": 0
+                            }
                         }
-                    },
-                    {
-                        "$project": {
-                            "_id": 0
+                    ],
+                    "total_count": [
+                        {
+                            "$count": "total_snippets_count"
                         }
-                    }
-                ],
-                "total_count": [
-                    {
-                        "$count": "total_snippets_count"
-                    }
-                ],
-                "total_bytes_grand": [
-                    {
-                        "$group": {
-                            "_id": None,
-                            "total_bytes": {"$sum": {"$strLenBytes": "$code"}}
+                    ],
+                    "total_bytes_grand": [
+                        {
+                            "$group": {
+                                "_id": None,
+                                "total_bytes": {"$sum": {"$strLenBytes": "$code"}}
+                            }
                         }
-                    }
-                ]
+                    ]
+                }
+            },
+            {
+                "$project": {
+                    "total_snippets_count": {"$first": "$total_count.total_snippets_count"},
+                    "total_bytes": {"$first": "$total_bytes_grand.total_bytes"},
+                    "languages_data": "$lang_stats",
+                    "_id": 0
+                }
             }
-        },
-        {
-            "$project": {
-                "total_snippets_count": {"$first": "$total_count.total_snippets_count"},
-                "total_bytes": {"$first": "$total_bytes_grand.total_bytes"},
-                "languages_data": "$lang_stats",
-                "_id": 0
-            }
-        }
-    ]
-    results = await snippets_collection.aggregate(pipeline).to_list(length=1)
-    return results[0] if results else None
+        ]
+        results = await (await self.collection.aggregate(pipeline)).to_list(length=1)
+        return results[0] if results else None
+
+    async def get_all_user_snippets(self, user_id: str):
+        return await self.collection.find({"author.id": user_id}).to_list()
+
+    async def get_paginated_snippets_by_query(self, query: dict):
+        return await self.collection.find(query).to_list()

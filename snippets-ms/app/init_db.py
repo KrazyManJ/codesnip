@@ -3,7 +3,7 @@ from app.services import snippet_service
 from app.model.snippet import Snippet
 
 async def seed_data_if_empty():
-    count = len(await snippet_service.get_all_snippets())
+    count = len(await snippet_service.get_all_public_snippets())
     
     if count > 0:
         return
