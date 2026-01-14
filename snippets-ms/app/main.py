@@ -3,8 +3,9 @@ from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import snippet_router
-from .init_db import seed_data_if_empty
+# from .init_db import seed_data_if_empty
 from .connectors.grpc_search_connector import search_connector_client
+from fastapi_pagination import add_pagination
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -40,3 +41,4 @@ def status():
 
 
 app.include_router(snippet_router.router)
+add_pagination(app)
