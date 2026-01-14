@@ -11,16 +11,20 @@ class Visibility(str, Enum):
     PRIVATE = "private"
 
 
+# class User(BaseModel):
+#     id: str
+#     username: str
+
+
 class UploadSnippet(BaseModel):
     title: str
     description: str
     code: str
     language: str
-    created_at: datetime = Field(default_factory=datetime.now)
     visibility: Visibility = Visibility.PUBLIC
 
 
-class SnippetDict():
+class SnippetDict(TypedDict):
     """
     Is used for return value of Snippet model, and for repository
     """
@@ -34,4 +38,4 @@ class SnippetDict():
 
 
 class Snippet(UploadSnippet, ObjectIdBaseModel):
-    pass
+    created_at: datetime = Field(default_factory=datetime.now)

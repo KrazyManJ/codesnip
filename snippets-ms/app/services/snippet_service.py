@@ -1,21 +1,22 @@
-
 from bson import ObjectId
 from fastapi import BackgroundTasks
 from ..connectors.grpc_search_connector import search_connector_client
 from ..repositories import snippet_repository
 from ..model.snippet import UploadSnippet, SnippetDict, Snippet
 from ..model.search import SearchResultDict
+from ..model.object_id import PyObjectId
 
 
 async def add_snippet(
-    snippet: UploadSnippet,
+    snippet: Snippet,
     background_tasks: BackgroundTasks = None
-) -> SnippetDict:
-    result_snippet = await snippet_repository.add_snippet(snippet.model_dump(mode="json"))
+) -> Snippet:
+    result_snippet_dict = await snippet_repository.add_snippet(snippet.model_dump(mode="json"))
+    result_snippet = Snippet(**result_snippet_dict)
     if background_tasks:
-        background_tasks.add_task(search_connector_client.index_snippet, Snippet(**result_snippet))
+        background_tasks.add_task(search_connector_client.index_snippet, result_snippet)
     else:
-        await search_connector_client.index_snippet(Snippet(**result_snippet))
+        await search_connector_client.index_snippet(result_snippet)
     return result_snippet
 
 
@@ -28,7 +29,7 @@ async def get_snippet_by_id(snippet_id: str) -> SnippetDict:
 
 
 async def update_snippet_by_id(
-    snippet_id: ObjectId,
+    snippet_id: ObjectId | PyObjectId,
     snippet_update: UploadSnippet,
     background_tasks: BackgroundTasks = None
 ) -> SnippetDict:
@@ -41,7 +42,7 @@ async def update_snippet_by_id(
 
 
 async def delete_snippet_by_id(
-    snippet_id: ObjectId,
+    snippet_id: ObjectId | PyObjectId,
     background_tasks: BackgroundTasks = None
 ) -> None:
     delete_result = await snippet_repository.delete_snippet_by_id(snippet_id)
@@ -54,7 +55,7 @@ async def delete_snippet_by_id(
         await search_connector_client.delete_snippet(str(snippet_id))
 
 
-async def search(query: str,language: str = None) -> SearchResultDict:
+async def search(query: str, language: str = None) -> SearchResultDict:
     return await search_connector_client.search(query, language)
 
 
