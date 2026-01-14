@@ -3,6 +3,7 @@ __pycache__
 
 # project settings
 .vscode
+.idea
 
 # generated gRPC
 search_pb2.py

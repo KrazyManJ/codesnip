@@ -17,17 +17,39 @@ services:
             - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
         volumes:
             - meili_data:/meili_data
+    keycloak:
+        image: quay.io/keycloak/keycloak:latest
+        command: start-dev
+        environment:
+            KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
+            KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASS}
+            KC_HEALTH_ENABLED: true
+        ports:
+            - "8080:8080"
+        volumes:
+            - keycloak_data:/opt/keycloak/data/
+        healthcheck:
+            test: [ "CMD-SHELL", "curl --head -fsS http://localhost:9000/health/ready | echo $?" ]
+            interval: 30s
+            timeout: 10s
+            retries: 5
+            start_period: 40s
     snippets-service:
         build: ./snippets-ms
         ports:
             - "8000:8000"
         depends_on:
-            - mongo
+            keycloak:
+                condition: service_healthy
+            mongo:
+                condition: service_started
         environment:
             - MONGO_HOST=mongo
             - MONGO_USER=${MONGO_USER}
             - MONGO_PASSWORD=${MONGO_PASSWORD}
             - SEARCH_SERVICE_ADDRESS=search-service:50051
+            - KEYCLOAK_URL=http://keycloak:8080/realms/codesnip-realm
+            - KEYCLOAK_HASH_ALGORITHM=RS256
     search-service:
         build: ./search-ms
         ports:
@@ -42,3 +64,5 @@ volumes:
         name: "codesnip-mongo"
     meili_data:
         name: "codesnip-meili"
+    keycloak_data:
+        name: "codesnip-keycloak"

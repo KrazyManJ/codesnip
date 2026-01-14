@@ -11,9 +11,10 @@ class Visibility(str, Enum):
     PRIVATE = "private"
 
 
-# class User(BaseModel):
-#     id: str
-#     username: str
+class User(BaseModel):
+    id: str
+    username: str
+    email_hash: str
 
 
 class UploadSnippet(BaseModel):
@@ -38,4 +39,5 @@ class SnippetDict(TypedDict):
 
 
 class Snippet(UploadSnippet, ObjectIdBaseModel):
+    author: User
     created_at: datetime = Field(default_factory=datetime.now)

@@ -1,11 +1,12 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
-from typing import Annotated, cast
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, status, HTTPException
+from typing import Annotated
 
-from ..model.snippet import Snippet, UploadSnippet
+from ..model.snippet import Snippet, UploadSnippet, User
 from ..model.search import SearchResult
 from ..model.stats import Stats
 from ..services import snippet_service
 from ..dependencies import validate_snippet_id
+from ..auth import get_current_user
 
 router = APIRouter(tags=["Snippets"])
 
@@ -19,9 +20,13 @@ snippets_router = APIRouter(prefix="/snippets")
 )
 async def upload_snippet(
     snippet: UploadSnippet,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    user: Annotated[User, Depends(get_current_user)]
 ):
-    full_snippet = Snippet(**snippet.model_dump())
+    full_snippet = Snippet(
+        author=user,
+        **snippet.model_dump()
+    )
     
     return await snippet_service.add_snippet(full_snippet, background_tasks)
 
@@ -57,8 +62,15 @@ async def get_snippet(snippet: Annotated[Snippet, Depends(validate_snippet_id)])
 async def update_snippet(
     snippet: Annotated[Snippet, Depends(validate_snippet_id)],
     snippet_update: UploadSnippet,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    user: Annotated[User, Depends(get_current_user)]
 ):
+    if user.id != snippet.author.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to perform this action"
+        )
+    
     return await snippet_service.update_snippet_by_id(snippet.id, snippet_update, background_tasks)
 
 
@@ -72,8 +84,15 @@ async def update_snippet(
 )
 async def delete_snippet(
     snippet: Annotated[Snippet, Depends(validate_snippet_id)],
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    user: Annotated[User, Depends(get_current_user)]
 ):
+    if user.id != snippet.author.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to perform this action"
+        )
+    
     return await snippet_service.delete_snippet_by_id(snippet.id, background_tasks)
 
 
