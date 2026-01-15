@@ -71,7 +71,7 @@ def mongo_container():
 async def db_client(mongo_container):
     mongo_url = mongo_container.get_connection_url()
     mongo_client = AsyncMongoClient(mongo_url)
-    await mongo_client["codesnip"]["snippets"].insert_many([s.to_mongo() for s in test_snippets])
+    await mongo_client["codesnip"]["snippets"].insert_many([s.to_mongo_document() for s in test_snippets])
 
     try:
         yield mongo_client

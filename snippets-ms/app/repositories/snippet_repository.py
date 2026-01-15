@@ -20,11 +20,13 @@ class SnippetRepository:
         return await self.collection.find({"visibility": "public"}).to_list()
 
     async def get_snippet_by_id(self, snippet_id: ObjectId) -> SnippetDict | None:
-        return await self.collection.find_one({"_id": str(snippet_id)})
+        result = await self.collection.find_one({"_id": snippet_id})
+        
+        return result
 
     async def update_snippet_by_id(self, snippet_id: ObjectId | PyObjectId, snippet_update: UploadSnippet) -> SnippetDict:
         result = await self.collection.find_one_and_update(
-            {"_id": str(snippet_id)},
+            {"_id": snippet_id},
             {"$set": snippet_update.model_dump(mode="json")},
             return_document=True
         )

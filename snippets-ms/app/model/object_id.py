@@ -45,10 +45,10 @@ class ObjectIdBaseModel(BaseModel):
         kwargs.setdefault('mode', "json")
         return super().model_dump(**kwargs)
     
-    def to_mongo(self, **kwargs):
+    def to_mongo_document(self, **kwargs):
         parsed = self.model_dump()
         
         if 'id' in parsed:
-            parsed['_id'] = parsed.pop('id')
+            parsed['_id'] = ObjectId(parsed.pop('id'))
             
         return parsed
