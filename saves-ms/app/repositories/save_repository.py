@@ -48,8 +48,36 @@ class SaveRepository:
                     "_id": "$snippet_id",
                     "save_count": {"$sum": 1}
                 }
+            },
+            {
+                "$project": {
+                    "_id": 0
+                }
             }
         ]
         results = await (await self.collection.aggregate(pipeline)).to_list()
-        print(results)
         return results[0] if results else {"save_count": 0}
+
+    async def get_all_snippets_stats(self, snippet_ids: list) -> list[dict]:
+        pipeline = [
+            {
+                "$match": {"snippet_id": {"$in": snippet_ids}}
+            },
+            {
+                "$group": {
+                    "_id": "$snippet_id",
+                    "save_count": {"$sum": 1}
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "snippet_id": "$_id",
+                    "stats": {
+                        "save_count": "$save_count"
+                    }
+                }
+            }
+        ]
+    
+        return await (await self.collection.aggregate(pipeline)).to_list()

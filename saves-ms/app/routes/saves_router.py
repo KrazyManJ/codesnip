@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi_pagination import Page
 
-from ..model.save import UploadSave, Save, SaveStatusRequestBody, SaveStats
+from ..model.save import UploadSave, Save, SaveStatusRequestBody, SaveStats, BulkSingleSaveStats
 from ..model.user import User
 from ..dependencies import get_current_user, get_save_service, verify_object_id
 from ..services.save_service import SaveService
@@ -81,3 +81,15 @@ async def get_snippet_stats(
     save_service: Annotated[SaveService, Depends(get_save_service)]
 ):
     return await save_service.get_status_of_snippet(snippet_id)
+
+
+@saves_router.post(
+    path="/stats/batch",
+    response_model=list[BulkSingleSaveStats],
+)
+async def check_status_of_snippets_for_batch(
+    body: SaveStatusRequestBody,
+    save_service: Annotated[SaveService, Depends(get_save_service)]
+):
+    return await save_service.get_status_of_snippets_for_batch(body)
+    

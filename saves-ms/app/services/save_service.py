@@ -55,5 +55,8 @@ class SaveService:
         )
         
     async def get_status_of_snippet(self, snippet_id):
-        return await self.repository.get_snippet_stats(snippet_id) 
+        return await self.repository.get_snippet_stats(snippet_id)
+    
+    async def get_status_of_snippets_for_batch(self, body: SaveStatusRequestBody):
+        return await self.repository.get_all_snippets_stats(body.snippet_ids)
         

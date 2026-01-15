@@ -34,7 +34,13 @@ class SnippetRepository:
         return await self.collection.delete_one({"_id": str(snippet_id)})
 
     async def get_all_public_languages(self) -> list[str]:
-        return await self.collection.distinct("language", {"visibility": "public"})
+        pipeline = [
+            {"$match": {"visibility": "public"}},
+            {"$group": {"_id": "$language"}},
+            {"$sort": {"_id": 1}}
+        ]
+        cursor = await self.collection.aggregate(pipeline)
+        return [doc["_id"] async for doc in cursor]
 
     async def get_stats(self):
         pipeline = [

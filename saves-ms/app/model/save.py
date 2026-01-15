@@ -25,3 +25,8 @@ class SaveStatusRequestBody(BaseModel):
 class SaveStats(BaseModel):
     save_count: int
     
+    
+class BulkSingleSaveStats(BaseModel):
+    snippet_id: str
+    stats: SaveStats
+    

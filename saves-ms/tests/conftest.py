@@ -7,7 +7,6 @@ from httpx import AsyncClient, ASGITransport
 from pymongo import AsyncMongoClient
 from testcontainers.mongodb import MongoDbContainer
 
-from app.model.save import Save
 from app.model.user import User
 from app.main import app
 from app.dependencies import get_database, get_current_user_allow_none
