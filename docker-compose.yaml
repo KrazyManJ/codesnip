@@ -4,8 +4,8 @@ services:
         ports:
             - "127.0.0.1:27017:27017"
         environment:
-            - MONGO_INITDB_ROOT_USERNAME=${SNIPPETS_MONGO_USER} 
-            - MONGO_INITDB_ROOT_PASSWORD=${SNIPPETS_MONGO_PASSWORD}
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER} 
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
         volumes:
             - snippets_mongo_data:/mongo_data
     meilisearch:
@@ -64,18 +64,18 @@ services:
         ports:
             - "127.0.0.1:27018:27018"
         environment:
-            - MONGO_INITDB_ROOT_USERNAME=${SNIPPETS_MONGO_USER}
-            - MONGO_INITDB_ROOT_PASSWORD=${SNIPPETS_MONGO_PASSWORD}
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
         volumes:
             - saves_mongo_data:/mongo_data
     saves-service:
-        build: ./snippets-ms
+        build: ./saves-ms
         ports:
-            - "8001:8001"
+            - "8001:8000"
         depends_on:
             keycloak:
                 condition: service_healthy
-            snippets-mongo:
+            saves-mongo:
                 condition: service_started
         environment:
             - MONGO_HOST=saves-mongo
