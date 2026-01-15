@@ -1,9 +1,13 @@
+from datetime import datetime
+
 import pytest
 import pytest_asyncio
+from bson import ObjectId
 from httpx import AsyncClient, ASGITransport
 from pymongo import AsyncMongoClient
 from testcontainers.mongodb import MongoDbContainer
 
+from app.model.save import Save
 from app.model.user import User
 from app.main import app
 from app.dependencies import get_database, get_current_user_allow_none
@@ -13,6 +17,25 @@ TEST_USER = User(
     username="testuser",
     email_hash="hash-of-test-email"
 )
+TEST_INVALID_USER = User(
+    id="test-invalid-user-id-123",
+    username="testinvaliduser",
+    email_hash="hash-of-test-invalidemail"
+)
+
+def _create_save(user: User):
+    return {
+        "user_id": user.id,
+        "snippet_id": str(ObjectId()),
+        "saved_at": datetime.now().isoformat(),
+    }
+
+TEST_SAVES = [
+    _create_save(TEST_USER),
+    _create_save(TEST_USER),
+    _create_save(TEST_INVALID_USER),
+    _create_save(TEST_INVALID_USER),
+]
 
 @pytest.fixture(scope="session")
 def mongo_container():
@@ -24,6 +47,7 @@ def mongo_container():
 async def db_client(mongo_container):
     mongo_url = mongo_container.get_connection_url()
     mongo_client = AsyncMongoClient(mongo_url)
+    await mongo_client["codesnip"]["saves"].insert_many([s for s in TEST_SAVES])
 
     try:
         yield mongo_client
@@ -51,6 +75,13 @@ async def setup_overrides(db_client):
 @pytest.fixture
 def unauthenticated():
     app.dependency_overrides[get_current_user_allow_none] = lambda: None
+
+
+@pytest.fixture
+def authenticated_as_invalid():
+    def override_get_current_user():
+        return TEST_INVALID_USER
+    app.dependency_overrides[get_current_user_allow_none] = override_get_current_user
 
 
 @pytest_asyncio.fixture

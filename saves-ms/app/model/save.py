@@ -15,5 +15,5 @@ class UploadSave(BaseModel):
 
 
 class Save(UploadSave):
-    created_at: datetime = Field(default_factory=datetime.now)
+    saved_at: datetime = Field(default_factory=datetime.now)
 

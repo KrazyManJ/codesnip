@@ -10,7 +10,7 @@ async def test_save_success(async_client):
     assert response.status_code == 200
     response_json = response.json()
     assert "snippet_id" in response_json
-    assert "created_at" in response_json
+    assert "saved_at" in response_json
     
     
 @pytest.mark.asyncio

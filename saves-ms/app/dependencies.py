@@ -1,5 +1,6 @@
 import hashlib
 
+from bson import ObjectId
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pymongo.asynchronous.collection import AsyncCollection
@@ -82,3 +83,11 @@ async def get_current_user(user: Annotated[User | None, Depends(get_current_user
         )
     return user
 
+
+def verify_object_id(snippet_id: str):
+    if not ObjectId.is_valid(snippet_id):
+        raise HTTPException(
+            status_code=422,
+            detail=f"ID '{snippet_id}' is not valid id"
+        )
+    return snippet_id

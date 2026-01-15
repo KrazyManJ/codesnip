@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_pagination import add_pagination
 
 from app.routes.saves_router import saves_router
 
@@ -33,3 +34,4 @@ def status():
 
 
 app.include_router(saves_router)
+add_pagination(app)

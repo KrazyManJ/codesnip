@@ -1,5 +1,6 @@
-from bson import ObjectId
 from fastapi import HTTPException, status
+from fastapi_pagination import Page
+from fastapi_pagination.ext.pymongo import apaginate
 
 from app.model.save import UploadSave, Save
 from app.model.user import User
@@ -28,22 +29,22 @@ class SaveService:
         )
 
     async def unsave_snippet(self, user: User, snippet_id: str):
-        if not ObjectId.is_valid(snippet_id):
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=f"Invalid snippet ID: {snippet_id}",
-            )
-        
-        is_present = (await self.repository.get_save(snippet_id, user.id)) is not None
+        save_in_db = await self.repository.get_save(snippet_id, user.id)
 
-        if not is_present:
+        if save_in_db is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"This snippet is already saved.",
+                detail=f"This snippet is not saved.",
             )
         
         await self.repository.unsave(
             snippet_id=snippet_id,
             user_id=user.id,
         )
+    
+    async def get_all_saves_of_user(self, user_id) -> Page[Save]:
+        return await self.repository.get_all_saves_paginated({"user_id": user_id})
+
+    async def get_snippet(self, user, snippet_id):
+        return await self.repository.get_save(snippet_id, user.id)
         
