@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi_pagination import Page
 
-from ..model.save import UploadSave, Save
+from ..model.save import UploadSave, Save, SaveStatusRequestBody, SaveStats
 from ..model.user import User
 from ..dependencies import get_current_user, get_save_service, verify_object_id
 from ..services.save_service import SaveService
@@ -45,6 +45,18 @@ async def get_saves_of_current_user(
     return await save_service.get_all_saves_of_user(user.id)
 
 
+@saves_router.post(
+    path="/check-status",
+    response_model=list[Save],
+)
+async def check_status_of_snippets_for_user(
+    user: Annotated[User, Depends(get_current_user)],
+    body: SaveStatusRequestBody,
+    save_service: Annotated[SaveService, Depends(get_save_service)]
+):
+    return await save_service.check_status_of_snippets_for_user(user, body)
+
+
 @saves_router.get(
     path="/{snippet_id}",
     response_model=Save,
@@ -58,3 +70,14 @@ async def get_snippet(
     if not save:
         raise HTTPException(status_code=404, detail=f"Save not found")
     return save
+
+
+@saves_router.get(
+    path="/{snippet_id}/stats",
+    response_model=SaveStats,
+)
+async def get_snippet_stats(
+    snippet_id: Annotated[str, Depends(verify_object_id)],
+    save_service: Annotated[SaveService, Depends(get_save_service)]
+):
+    return await save_service.get_status_of_snippet(snippet_id)

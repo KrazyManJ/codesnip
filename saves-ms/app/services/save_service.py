@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from fastapi_pagination import Page
 from fastapi_pagination.ext.pymongo import apaginate
 
-from app.model.save import UploadSave, Save
+from app.model.save import UploadSave, Save, SaveStatusRequestBody
 from app.model.user import User
 from app.repositories.save_repository import SaveRepository
 
@@ -47,4 +47,13 @@ class SaveService:
 
     async def get_snippet(self, user, snippet_id):
         return await self.repository.get_save(snippet_id, user.id)
+
+    async def check_status_of_snippets_for_user(self, user, save_status_request: SaveStatusRequestBody):
+        return await self.repository.get_ids_of_saved_snippets_for_user(
+            user.id, 
+            save_status_request.snippet_ids
+        )
+        
+    async def get_status_of_snippet(self, snippet_id):
+        return await self.repository.get_snippet_stats(snippet_id) 
         

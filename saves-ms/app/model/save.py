@@ -17,3 +17,11 @@ class UploadSave(BaseModel):
 class Save(UploadSave):
     saved_at: datetime = Field(default_factory=datetime.now)
 
+
+class SaveStatusRequestBody(BaseModel):
+    snippet_ids: list[str] = Field(..., max_length=100)
+    
+    
+class SaveStats(BaseModel):
+    save_count: int
+    

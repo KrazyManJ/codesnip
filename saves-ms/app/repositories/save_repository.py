@@ -31,3 +31,25 @@ class SaveRepository:
 
     async def get_all_saves_paginated(self, query: dict):
         return await apaginate(self.collection, query)
+
+    async def get_ids_of_saved_snippets_for_user(self, user_id, snippet_ids: list[str]):
+        return await self.collection.find({
+            "user_id": user_id,
+            "snippet_id": {"$in": snippet_ids},
+        }).to_list()
+    
+    async def get_snippet_stats(self, snippet_id):
+        pipeline = [
+            {
+                "$match": {"snippet_id": snippet_id}
+            },
+            {
+                "$group": {
+                    "_id": "$snippet_id",
+                    "save_count": {"$sum": 1}
+                }
+            }
+        ]
+        results = await (await self.collection.aggregate(pipeline)).to_list()
+        print(results)
+        return results[0] if results else {"save_count": 0}

@@ -7,7 +7,7 @@ from app.routes.saves_router import saves_router
 app = FastAPI(
     title="CodeSnip Saves API",
     summary="""
-        CodeSnip service to provide information about saved repositories. 
+        CodeSnip service to provide information about saved statuses of snippets. 
         
         Allows to save and unsave snippet as well as getting save stats about one snippet.
     """,
