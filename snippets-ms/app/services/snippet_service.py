@@ -1,5 +1,7 @@
 from bson import ObjectId
 from fastapi import BackgroundTasks
+from fastapi_pagination import Page
+
 from ..connectors.grpc_search_connector import GRPCSearchConnector
 from ..repositories.snippet_repository import SnippetRepository
 from ..model.snippet import UploadSnippet, SnippetDict, Snippet
@@ -31,8 +33,8 @@ class SnippetService:
         return result_snippet
     
     
-    async def get_all_snippets(self) -> list[SnippetDict]:
-        return await self.snippet_repository.get_all_public_snippets()
+    async def get_all_snippets(self) -> Page[SnippetDict]:
+        return await self.snippet_repository.get_paginated_snippets_by_query({"visibility": "public"})
     
     
     async def get_snippet_by_id(self, snippet_id: str) -> SnippetDict:
@@ -69,12 +71,12 @@ class SnippetService:
     
     
     async def get_all_languages(self,) -> list[str]:
-        return await self.snippet_repository.get_all_languages()
+        return await self.snippet_repository.get_all_public_languages()
     
     
     async def get_stats(self,):
         return await self.snippet_repository.get_stats()
     
     
-    async def get_all_user_snippets(self, user_id: str):
-        return await self.snippet_repository.get_all_user_snippets(user_id)
+    async def get_all_user_snippets(self, user_id: str) -> Page[SnippetDict]:
+        return await self.snippet_repository.get_paginated_snippets_by_query({"author.id": user_id})

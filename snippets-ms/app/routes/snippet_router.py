@@ -7,7 +7,7 @@ from ..model.stats import Stats
 from ..services.snippet_service import SnippetService
 from ..dependencies import validate_snippet_id, get_snippet_service
 from ..auth import get_current_user
-from fastapi_pagination import Page, paginate
+from fastapi_pagination import Page
 
 router = APIRouter(tags=["Snippets"])
 
@@ -39,7 +39,7 @@ async def upload_snippet(
 async def all_snippets(
     snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
 ):
-    return paginate(await snippet_service.get_all_snippets())
+    return await snippet_service.get_all_snippets()
 
 
 @snippets_router.get(
@@ -50,7 +50,7 @@ async def get_snippets_of_user(
     user: Annotated[User, Depends(get_current_user)],
     snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
 ):
-    return paginate(await snippet_service.get_all_user_snippets(user.id))
+    return await snippet_service.get_all_user_snippets(user.id)
 
 
 @snippets_router.get(

@@ -1,16 +1,8 @@
-from datetime import datetime
-from httpx import ASGITransport, AsyncClient
 import pytest
 
-from app.main import app
-
-async_client = AsyncClient(
-    transport=ASGITransport(app=app),
-    base_url="http://test"
-)
 
 @pytest.mark.asyncio
-async def test_update_success():
+async def test_update_success(async_client):
     snippet_id = "6911c38853ed167b0b3cf306"
     snippet = (await async_client.get(f"/snippets/{snippet_id}")).json()
     assert snippet["title"] != "New title"
@@ -22,20 +14,20 @@ async def test_update_success():
 
 
 @pytest.mark.asyncio
-async def test_update_invalid_body():
+async def test_update_invalid_body(async_client):
     snippet_id = "6911c38853ed167b0b3cf306"
     response = await async_client.put(f"/snippets/{snippet_id}", json={})
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_update_invalid_id():
+async def test_update_invalid_id(async_client):
     response = await async_client.put("/snippets/random_thing_that_is_not_id", json={})
     assert response.status_code == 400
 
 
 @pytest.mark.asyncio
-async def test_update_unknown_id():
+async def test_update_unknown_id(async_client):
     snippet_id = "691139572bb41dcaba909a65"
     response = await async_client.put(f"/snippets/{snippet_id}", json={})
     assert response.status_code == 404

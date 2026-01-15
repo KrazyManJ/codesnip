@@ -82,13 +82,13 @@ class AuthHandler:
 auth_handler = AuthHandler()
 
 
-async def get_current_user(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]) -> User:
+async def get_current_user_allow_none(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]) -> User | None:
     token = credentials.credentials
     payload = auth_handler.verify_token(token)
 
     user_id = payload.get("sub")
     if user_id is None:
-        raise HTTPException(status_code=401, detail="Token missing user ID")
+        return None
 
     email_bytes = payload.get("email").strip().lower().encode('utf-8')
 
@@ -97,3 +97,12 @@ async def get_current_user(credentials: Annotated[HTTPAuthorizationCredentials, 
         username=payload.get("preferred_username"),
         email_hash=hashlib.md5(email_bytes).hexdigest(),
     )
+
+
+async def get_current_user(user: Annotated[User | None, Depends(get_current_user_allow_none)]) -> User:
+    if user is None:
+        raise HTTPException(
+            status_code=401, 
+            detail="Token missing user ID"
+        )
+    return user

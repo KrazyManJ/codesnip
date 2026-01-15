@@ -1,4 +1,5 @@
 from bson import ObjectId
+from fastapi_pagination.ext.pymongo import apaginate
 from pymongo.asynchronous.collection import AsyncCollection
 from pymongo.results import DeleteResult
 
@@ -31,11 +32,14 @@ class SnippetRepository:
     async def delete_snippet_by_id(self, snippet_id: ObjectId) -> DeleteResult:
         return await self.collection.delete_one({"_id": str(snippet_id)})
 
-    async def get_all_languages(self) -> list[str]:
-        return await self.collection.distinct("language")
+    async def get_all_public_languages(self) -> list[str]:
+        return await self.collection.distinct("language", {"visibility": "public"})
 
     async def get_stats(self):
         pipeline = [
+            {
+                "$match": {"visibility": "public"}
+            },
             {
                 "$facet": {
                     "lang_stats": [
@@ -84,4 +88,4 @@ class SnippetRepository:
         return await self.collection.find({"author.id": user_id}).to_list()
 
     async def get_paginated_snippets_by_query(self, query: dict):
-        return await self.collection.find(query).to_list()
+        return await apaginate(self.collection, query)

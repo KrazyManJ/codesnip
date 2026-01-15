@@ -2,7 +2,8 @@ from bson import ObjectId
 from fastapi import HTTPException, Depends, BackgroundTasks
 from pymongo.asynchronous.collection import AsyncCollection
 
-from .model.snippet import Snippet
+from .auth import get_current_user_allow_none
+from .model.snippet import Snippet, User, Visibility
 from .services.snippet_service import SnippetService
 from .repositories.snippet_repository import SnippetRepository
 from .connectors.grpc_search_connector import GRPCSearchConnector
@@ -59,17 +60,26 @@ def get_snippet_service(
 
 async def validate_snippet_id(
     snippet_id: str,
-    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)],
+    user: Annotated[User | None, Depends(get_current_user_allow_none)]
 ) -> Snippet:
     if not ObjectId.is_valid(snippet_id):
         raise HTTPException(
             status_code=400,
             detail="Invalid format of snippet id"
         )
-    snippet = await snippet_service.get_snippet_by_id(snippet_id)
-    if snippet is None:
+    snippet_dict = await snippet_service.get_snippet_by_id(snippet_id)
+    if snippet_dict is None:
         raise HTTPException(
             status_code=404,
             detail=f"Snippet with id '{snippet_id}' not found"
         )
-    return Snippet(**snippet)
+    snippet = Snippet(**snippet_dict)
+
+    if snippet.author.id != user.id and snippet.visibility == Visibility.PRIVATE:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Snippet with id '{snippet_id}' is private"
+        )
+    
+    return snippet
