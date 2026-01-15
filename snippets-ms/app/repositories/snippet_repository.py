@@ -2,6 +2,7 @@ from bson import ObjectId
 from fastapi_pagination.ext.pymongo import apaginate
 from pymongo.asynchronous.collection import AsyncCollection
 from pymongo.results import DeleteResult
+from ..model.object_id import PyObjectId
 
 from ..model.snippet import UploadSnippet, SnippetDict
 
@@ -21,7 +22,7 @@ class SnippetRepository:
     async def get_snippet_by_id(self, snippet_id: ObjectId) -> SnippetDict | None:
         return await self.collection.find_one({"_id": str(snippet_id)})
 
-    async def update_snippet_by_id(self, snippet_id: ObjectId, snippet_update: UploadSnippet) -> SnippetDict:
+    async def update_snippet_by_id(self, snippet_id: ObjectId | PyObjectId, snippet_update: UploadSnippet) -> SnippetDict:
         result = await self.collection.find_one_and_update(
             {"_id": str(snippet_id)},
             {"$set": snippet_update.model_dump(mode="json")},

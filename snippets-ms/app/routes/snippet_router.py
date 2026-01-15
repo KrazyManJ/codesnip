@@ -84,7 +84,7 @@ async def update_snippet(
             detail="You are not authorized to perform this action"
         )
     
-    return await snippet_service.update_snippet_by_id(snippet.id, snippet_update)
+    return await snippet_service.update_snippet_by_id(snippet, snippet_update)
 
 
 @snippets_router.delete(

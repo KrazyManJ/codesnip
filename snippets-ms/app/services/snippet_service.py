@@ -4,7 +4,7 @@ from fastapi_pagination import Page
 
 from ..connectors.grpc_search_connector import GRPCSearchConnector
 from ..repositories.snippet_repository import SnippetRepository
-from ..model.snippet import UploadSnippet, SnippetDict, Snippet
+from ..model.snippet import UploadSnippet, SnippetDict, Snippet, Visibility
 from ..model.search import SearchResultDict
 from ..model.object_id import PyObjectId
 
@@ -26,10 +26,12 @@ class SnippetService:
     ) -> Snippet:
         result_snippet_dict = await self.snippet_repository.add_snippet(snippet.model_dump(mode="json"))
         result_snippet = Snippet(**result_snippet_dict)
-        if self.background_tasks:
-            self.background_tasks.add_task(self.search_connector_client.index_snippet, result_snippet)
-        else:
-            await self.search_connector_client.index_snippet(result_snippet)
+        
+        if result_snippet.visibility is Visibility.PRIVATE:
+            return result_snippet
+        
+        self.background_tasks.add_task(self.search_connector_client.index_snippet, result_snippet)
+        
         return result_snippet
     
     
@@ -42,15 +44,21 @@ class SnippetService:
     
     
     async def update_snippet_by_id(self,
-        snippet_id: ObjectId | PyObjectId,
+        snippet_to_change: Snippet,
         snippet_update: UploadSnippet
     ) -> SnippetDict:
-        updated_snippet = await self.snippet_repository.update_snippet_by_id(snippet_id, snippet_update)
-        if self.background_tasks:
-            self.background_tasks.add_task(self.search_connector_client.index_snippet, Snippet(**updated_snippet))
-        else:
-            await self.search_connector_client.index_snippet(Snippet(**updated_snippet))
-        return updated_snippet
+        updated_snippet_dict = await self.snippet_repository.update_snippet_by_id(snippet_to_change.id, snippet_update)
+        updated_snippet = Snippet(**updated_snippet_dict)
+
+
+        if snippet_to_change.visibility is not updated_snippet.visibility:
+            if updated_snippet.visibility is Visibility.PRIVATE:
+                self.background_tasks.add_task(self.search_connector_client.delete_snippet, updated_snippet.id)
+            else:
+                self.background_tasks.add_task(self.search_connector_client.index_snippet, updated_snippet)
+
+        self.background_tasks.add_task(self.search_connector_client.index_snippet, updated_snippet)
+        return updated_snippet_dict
     
     
     async def delete_snippet_by_id(self,
@@ -60,10 +68,7 @@ class SnippetService:
         if delete_result.deleted_count == 0:
             return
         
-        if self.background_tasks:
-            self.background_tasks.add_task(self.search_connector_client.delete_snippet, str(snippet_id))
-        else:
-            await self.search_connector_client.delete_snippet(str(snippet_id))
+        self.background_tasks.add_task(self.search_connector_client.delete_snippet, str(snippet_id))
     
     
     async def search(self, query: str, language: str = None) -> SearchResultDict:
