@@ -18,11 +18,11 @@ class User(BaseModel):
 
 
 class UploadSnippet(BaseModel):
-    title: str
+    title: str = Field(..., pattern=r"\S")
     description: str
-    code: str
-    language: str
-    visibility: Visibility = Visibility.PUBLIC
+    code: str  = Field(..., pattern=r"\S")
+    language: str  = Field(..., pattern=r"\S")
+    visibility: Visibility = Field(Visibility.PUBLIC)
 
 
 class SnippetDict(TypedDict):

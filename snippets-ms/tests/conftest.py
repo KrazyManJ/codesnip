@@ -9,11 +9,10 @@ from httpx import AsyncClient, ASGITransport
 from testcontainers.mongodb import MongoDbContainer
 from pymongo import AsyncMongoClient
 from app.main import app
-from app.dependencies import get_database, get_search_connector
+from app.dependencies import get_database, get_search_connector, get_current_user_allow_none
 from app.connectors.grpc_search_connector import GRPCSearchConnector
 from app.model.object_id import PyObjectId
 from app.model.snippet import User, Snippet, Visibility
-from app.auth import get_current_user_allow_none
 
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="testcontainers")
 
@@ -113,6 +112,11 @@ async def setup_overrides(db_client, mock_search_connector):
     app.dependency_overrides.clear()
 
 
+@pytest.fixture
+def unauthenticated():
+    app.dependency_overrides[get_current_user_allow_none] = lambda: None
+
+
 @pytest_asyncio.fixture
 async def async_client(setup_overrides):
     async with AsyncClient(
@@ -120,18 +124,3 @@ async def async_client(setup_overrides):
         base_url="http://test"
     ) as ac:
         yield ac
-
-
-# @pytest_asyncio.fixture(autouse=True)
-# async def before_and_after_each():
-#     await search_connector_client.start()
-#     await snippets_collection.delete_many({})
-#     await meili_utils.clear_meilisearch()
-#     await snippets_collection.insert_many([s.to_mongo() for s in test_snippets])
-#     for snippet in test_snippets:
-#         await search_connector_client.index_snippet(snippet)
-#     await meili_utils.wait_for_meili_indexing(len(test_snippets))
-#     yield
-#     await snippets_collection.delete_many({})
-#     await meili_utils.clear_meilisearch()
-#     await search_connector_client.close()

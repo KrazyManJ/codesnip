@@ -7,6 +7,7 @@ async def test_get_valid_snippet_by_id(async_client):
     response = await async_client.get(f"/snippets/{snippet_id}")
     assert response.status_code == 200
     
+
 @pytest.mark.asyncio
 async def test_get_invalid_private_to_user(async_client):
     snippet_id = "696843588e0bf4375c065efd"

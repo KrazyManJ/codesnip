@@ -1,8 +1,11 @@
+import hashlib
+
 from bson import ObjectId
 from fastapi import HTTPException, Depends, BackgroundTasks
+from fastapi.security import HTTPAuthorizationCredentials
 from pymongo.asynchronous.collection import AsyncCollection
 
-from .auth import get_current_user_allow_none
+from app.services.auth import AuthHandler, security
 from .model.snippet import Snippet, User, Visibility
 from .services.snippet_service import SnippetService
 from .repositories.snippet_repository import SnippetRepository
@@ -58,6 +61,30 @@ def get_snippet_service(
     )
 
 
+def get_auth_handler() -> AuthHandler:
+    return AuthHandler()
+
+
+async def get_current_user_allow_none(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    auth_handler: Annotated[AuthHandler, Depends(get_auth_handler)]
+) -> User | None:
+    token = credentials.credentials
+    payload = auth_handler.verify_token(token)
+
+    user_id = payload.get("sub")
+    if user_id is None:
+        return None
+
+    email_bytes = payload.get("email").strip().lower().encode('utf-8')
+
+    return User(
+        id=user_id,
+        username=payload.get("preferred_username"),
+        email_hash=hashlib.md5(email_bytes).hexdigest(),
+    )
+
+
 async def validate_snippet_id(
     snippet_id: str,
     snippet_service: Annotated[SnippetService, Depends(get_snippet_service)],
@@ -83,3 +110,12 @@ async def validate_snippet_id(
         )
     
     return snippet
+
+
+async def get_current_user(user: Annotated[User | None, Depends(get_current_user_allow_none)]) -> User:
+    if user is None:
+        raise HTTPException(
+            status_code=401, 
+            detail="Token missing user ID"
+        )
+    return user

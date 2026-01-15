@@ -5,8 +5,7 @@ from ..model.snippet import Snippet, UploadSnippet, User
 from ..model.search import SearchResult
 from ..model.stats import Stats
 from ..services.snippet_service import SnippetService
-from ..dependencies import validate_snippet_id, get_snippet_service
-from ..auth import get_current_user
+from ..dependencies import validate_snippet_id, get_snippet_service, get_current_user
 from fastapi_pagination import Page
 
 router = APIRouter(tags=["Snippets"])
