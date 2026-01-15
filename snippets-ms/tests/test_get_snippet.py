@@ -26,3 +26,11 @@ async def test_get_unknown_id(async_client):
     snippet_id = "691139572bb41dcaba909a65"
     response = await async_client.get(f"/snippets/{snippet_id}")
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_get_unauthenticated_any_public(async_client, unauthenticated):
+    SNIPPET_ID = "6911c38853ed167b0b3cf306"
+
+    response = await async_client.get(f"/snippets/{SNIPPET_ID}")
+    assert response.status_code == 200

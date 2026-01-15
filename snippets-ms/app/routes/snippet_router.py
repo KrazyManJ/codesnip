@@ -5,7 +5,7 @@ from ..model.snippet import Snippet, UploadSnippet, User
 from ..model.search import SearchResult
 from ..model.stats import Stats
 from ..services.snippet_service import SnippetService
-from ..dependencies import validate_snippet_id, get_snippet_service, get_current_user
+from ..dependencies import validate_snippet_id, get_snippet_service, get_current_user, validate_snippet_non_private
 from fastapi_pagination import Page
 
 router = APIRouter(tags=["Snippets"])
@@ -60,7 +60,7 @@ async def get_snippets_of_user(
         status.HTTP_404_NOT_FOUND: {"description": "When desired snippet by id was not found"}
     }
 )
-async def get_snippet(snippet: Annotated[Snippet, Depends(validate_snippet_id)]):
+async def get_snippet(snippet: Annotated[Snippet, Depends(validate_snippet_non_private)]):
     return snippet
 
 

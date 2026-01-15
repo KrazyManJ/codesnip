@@ -5,7 +5,7 @@ from fastapi import HTTPException, Depends, BackgroundTasks
 from fastapi.security import HTTPAuthorizationCredentials
 from pymongo.asynchronous.collection import AsyncCollection
 
-from app.services.auth import AuthHandler, security
+from .services.auth import AuthHandler, security
 from .model.snippet import Snippet, User, Visibility
 from .services.snippet_service import SnippetService
 from .repositories.snippet_repository import SnippetRepository
@@ -66,9 +66,12 @@ def get_auth_handler() -> AuthHandler:
 
 
 async def get_current_user_allow_none(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
     auth_handler: Annotated[AuthHandler, Depends(get_auth_handler)]
 ) -> User | None:
+    if not credentials:
+        return None
+    
     token = credentials.credentials
     payload = auth_handler.verify_token(token)
 
@@ -109,6 +112,35 @@ async def validate_snippet_id(
             detail=f"Snippet with id '{snippet_id}' is private"
         )
     
+    return snippet
+
+
+async def validate_snippet_non_private(
+    snippet_id: str,
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)],
+    user: Annotated[User | None, Depends(get_current_user_allow_none)]
+):
+    if not ObjectId.is_valid(snippet_id):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid format of snippet id"
+        )
+    snippet_dict = await snippet_service.get_snippet_by_id(snippet_id)
+    if snippet_dict is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Snippet with id '{snippet_id}' not found"
+        )
+    snippet = Snippet(**snippet_dict)
+
+    if snippet.visibility == Visibility.PRIVATE:
+        if user is None or snippet.author.id != user.id: 
+            raise HTTPException(
+                status_code=403,
+                detail=f"Snippet with id '{snippet_id}' is private to you"
+            )
+    
+
     return snippet
 
 

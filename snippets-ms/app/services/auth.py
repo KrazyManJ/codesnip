@@ -11,7 +11,7 @@ load_dotenv()
 KEYCLOAK_URL = os.getenv("KEYCLOAK_URL")
 ALGORITHM = os.getenv("KEYCLOAK_HASH_ALGORITHM")
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 class AuthHandler:
