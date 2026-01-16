@@ -8,13 +8,16 @@ import { LucideBookmark, LucideCopy } from "lucide-react";
 import { toast } from "sonner";
 import { Extension } from "@codemirror/state";
 import { languages } from "@codemirror/language-data";
+import { cn } from "@/lib/utils";
 
 interface SnippetCardProps extends ComponentProps<"div"> {
     snippet: Snippet
     saveCount?: number
+    onSaveClick?: () => void
+    isSaved: boolean
 }
 
-const SnippetCard = ({snippet, saveCount, ...props}: SnippetCardProps) => {
+const SnippetCard = ({snippet, saveCount, onSaveClick, isSaved, ...props}: SnippetCardProps) => {
 
     const [extensions, setExtensions] = useState<Extension[]>([]);
 
@@ -83,9 +86,9 @@ const SnippetCard = ({snippet, saveCount, ...props}: SnippetCardProps) => {
                 {saveCount}
                 <Button variant={"ghost"} size={"icon-sm"} className="text-amber-300" onClick={(e) => {
                     e.stopPropagation()
-                    console.log("Save")
+                    onSaveClick?.()
                 }}>
-                    <LucideBookmark/>
+                    <LucideBookmark className={cn({"fill-amber-300":isSaved})}/>
                 </Button>
             </span> }
                 

@@ -3,7 +3,7 @@
 import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
 import { LucideMonitorSmartphone, LucideMoon, LucideSun } from "lucide-react";
-import { useIsMounted } from "usehooks-ts";
+import useIsMounted from "@/hooks/useIsMounted";
 
 const ThemeButton = () => {
     

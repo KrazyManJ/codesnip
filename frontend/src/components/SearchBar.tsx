@@ -7,7 +7,7 @@ import {
     CommandItem,
     CommandList,
 } from "./ui/command";
-import { useDebounceValue } from "usehooks-ts"
+import { useDebounce } from "@uidotdev/usehooks"
 import SearchEntry from "@/model/SearchEntry";
 import { snippetApi } from "@/api";
 import HighlightedText from "./HighlightedText";
@@ -30,13 +30,12 @@ const SearchBar = () => {
     const [results, setResults] = useState<SearchEntry[]>([])
     const [isSearching, setIsSearching] = useState<boolean>(false)
 
-    const [debouncedSearch, setDebouncedSearch] = useDebounceValue(searchInput, 500)
+    const debouncedSearch = useDebounce(searchInput, 500)
     
     useEffect(() => {
-        setDebouncedSearch(searchInput);
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSearching(true);
-    }, [searchInput, setDebouncedSearch])
+    }, [searchInput])
     
     useEffect(() => {
         snippetApi.post<SearchEntry[]>("/search", null, { params: { query: debouncedSearch } }).then(v => {
