@@ -1,4 +1,5 @@
 import pytest
+from bson import ObjectId
 
 @pytest.mark.asyncio
 async def test_get_batch_snippets_success(async_client):
@@ -11,6 +12,12 @@ async def test_get_batch_snippets_success(async_client):
     })
     assert response.status_code == 200
     json = response.json()
-    assert type(json) == dict
-    assert "items" in json
-    assert len(json["items"]) == 2
+    assert type(json) == list
+    assert len(json) == 2
+    
+@pytest.mark.asyncio
+async def test_get_batch_snippets_fail_to_much(async_client):
+    response = await async_client.post("/snippets/batch",json={
+        "snippet_ids": [str(ObjectId()) for _ in range(101)],
+    })
+    assert response.status_code == 422

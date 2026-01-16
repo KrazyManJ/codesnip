@@ -98,3 +98,15 @@ class SnippetRepository:
 
     async def get_paginated_snippets_by_query(self, query: dict):
         return await apaginate(self.collection, query)
+
+    async def get_snippets_in_batch(self, snippet_ids: list[str], user_id: str):
+        return await self.collection.find({
+            "_id": {"$in": snippet_ids},
+            "$or": [
+                {"visibility": "public"},
+                {
+                    "visibility": "private",
+                    "author.id": user_id
+                }
+            ]
+        }).to_list()

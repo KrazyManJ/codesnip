@@ -86,14 +86,6 @@ class SnippetService:
     async def get_all_user_snippets(self, user_id: str) -> Page[SnippetDict]:
         return await self.snippet_repository.get_paginated_snippets_by_query({"author.id": user_id})
 
-    async def get_snippets_batch(self, body: BatchSnippetsRequest, user_id: str) -> Page[SnippetDict]:
-        return await self.snippet_repository.get_paginated_snippets_by_query({
-            "_id": {"$in": body.snippet_ids},
-            "$or": [
-                {"visibility": "public"},
-                {
-                    "visibility": "private",
-                    "author.id": user_id
-                }
-            ]
-        })
+
+    async def get_snippets_batch(self, body: BatchSnippetsRequest, user_id: str):
+        return await self.snippet_repository.get_snippets_in_batch(body.snippet_ids, user_id)

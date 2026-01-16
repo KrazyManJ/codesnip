@@ -54,7 +54,7 @@ async def get_snippets_of_user(
 
 @snippets_router.post(
     path="/batch",
-    response_model=Page[Snippet],
+    response_model=list[Snippet],
 )
 async def get_snippets_batch(
     user: Annotated[User, Depends(get_current_user)],

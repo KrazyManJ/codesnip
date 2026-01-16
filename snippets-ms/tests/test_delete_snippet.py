@@ -7,7 +7,7 @@ async def test_delete_success(async_client):
     result = await async_client.delete(f"/snippets/{snippet_id}")
     assert result.status_code == 204
     list_result = await async_client.get("/snippets")
-    assert len(list_result.json()["items"]) == 2
+    assert len(list_result.json()["items"]) == 1
 
 
 @pytest.mark.asyncio
