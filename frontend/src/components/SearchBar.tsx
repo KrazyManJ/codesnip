@@ -9,13 +9,13 @@ import {
 } from "./ui/command";
 import { useDebounceValue } from "usehooks-ts"
 import SearchEntry from "@/model/SearchEntry";
-import { codesnipApi } from "@/api";
+import { snippetApi } from "@/api";
 import HighlightedText from "./HighlightedText";
 import { Spinner } from "./ui/spinner";
 import { cn } from "@/lib/utils";
-import { Decoration, DecorationSet, EditorView,  RangeSetBuilder, ViewPlugin, ViewUpdate } from "@uiw/react-codemirror";
 import BaseCodeMirror from "./BaseCodeMirror";
 import highlightPlugin from "@/lib/client/codemirror-highlight-plugin";
+import { useRouter } from "next/navigation";
 
 
 
@@ -23,6 +23,8 @@ import highlightPlugin from "@/lib/client/codemirror-highlight-plugin";
 
 const SearchBar = () => {
     
+    const router = useRouter()
+
     const [open, setOpen] = useState(false);
     const [searchInput, setSearchInput] = useState("")
     const [results, setResults] = useState<SearchEntry[]>([])
@@ -37,7 +39,7 @@ const SearchBar = () => {
     }, [searchInput, setDebouncedSearch])
     
     useEffect(() => {
-        codesnipApi.post<SearchEntry[]>("/search", null, { params: { query: debouncedSearch } }).then(v => {
+        snippetApi.post<SearchEntry[]>("/search", null, { params: { query: debouncedSearch } }).then(v => {
             setResults(v.data)
             setIsSearching(false)
         })
@@ -73,7 +75,10 @@ const SearchBar = () => {
                                 {!isSearching && results.map((searchResult) => (
                                     <CommandItem
                                         key={searchResult.snippet.id}
-                                        onSelect={() => {setOpen(false);}}
+                                        onSelect={() => {
+                                            setOpen(false);
+                                            router.push(`/snippet/${searchResult.snippet.id}`)
+                                        }}
                                     >
                                         <div>
                                             <HighlightedText>{searchResult.match.title}</HighlightedText>
