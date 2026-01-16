@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import PaginationResponse from "@/model/PaginationResponse";
 import SavesBatchSingleSaveResponse from "@/model/SavesBatchSingleSaveResponse";
 import Snippet from "@/model/Snippet";
-import { LucidePlus } from "lucide-react";
+import { LucidePlus, LucideX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useSet, useMap } from "@uidotdev/usehooks"
@@ -17,14 +17,19 @@ import { parseAsInteger, useQueryState } from "nuqs"
 import SmartPagination from "@/components/SmartPagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import Repeater from "@/components/Repeater";
+import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from "@/components/ui/select";
+import { LanguageLabel } from "@/components/LanguageLabel";
+import { LanguageIcon } from "@/components/LanguageIcon";
 
 export default function Home() {
 
     const [pagesCount, setPagesCount] = useState(1)
     const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1))
     const [isLoading, setIsLoading] = useState(true)
-
+    
     const [snippets, setSnippets] = useState<Snippet[]>([])
+    const [langs, setLangs] = useState<string[]>([])
+    const [selectedLang, setSelectedLang] = useState<string>()
     const saveCountMap = useMap() as Map<string, number>
     const userSavedSnippetsIds = useSet<string>()
     const router = useRouter()
@@ -63,11 +68,15 @@ export default function Home() {
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsLoading(true)
+        const params: Record<string, unknown> = {
+            size: 12,
+            page: page,
+        }
+        if (selectedLang) {
+            params["language"] = selectedLang
+        }
         snippetApi.get<PaginationResponse<Snippet>>("/snippets",{
-            params: {
-                size: 12,
-                page: page
-            }
+            params: params
         }).then(async (v) => {
             setSnippets(v.data.items)
             setPagesCount(v.data.pages)
@@ -80,20 +89,41 @@ export default function Home() {
             })
             setIsLoading(false)
         })
-        // snippetApi.get<string[]>("/langs").then(v => {
-        //     setLangs(v.data)
-        // })
-    }, [saveCountMap, page])
+        snippetApi.get<string[]>("/langs").then(v => {
+            setLangs(v.data)
+        })
+    }, [saveCountMap, page, selectedLang])
 
     return (
         <main>
             <Banner/>
-            <div className="flex justify-between py-6 gap-4">
+            <div className="flex justify-between py-6 gap-8">
                 <SearchBar/>
-                <Button onClick={() => router.push("create_snippet")}>
-                    <LucidePlus size={20}/>
-                    Create new
-                </Button>
+                <div className="flex items-center">
+                    <Select onValueChange={setSelectedLang} value={selectedLang}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Filter by language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {langs.map(lang => 
+                                <SelectItem value={lang} key={lang}>
+                                    <LanguageIcon language={lang}/>
+                                    <LanguageLabel language={lang}/>
+                                </SelectItem>
+                            )}
+                        </SelectContent>
+                    </Select>
+                    <Button variant={"ghost"} size={"icon-sm"} onClick={() => setSelectedLang("")}>
+                        <LucideX/>
+                    </Button>
+                </div>
+                {
+                    session && 
+                        <Button onClick={() => router.push("create_snippet")}>
+                            <LucidePlus size={20}/>
+                            Create new
+                        </Button>
+                }
                 
             </div>
             <div className="grid lg:grid-cols-3 gap-4 grid-cols-1">

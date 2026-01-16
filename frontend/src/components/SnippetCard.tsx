@@ -9,15 +9,16 @@ import { toast } from "sonner";
 import { Extension } from "@codemirror/state";
 import { languages } from "@codemirror/language-data";
 import { cn } from "@/lib/utils";
+import { LanguageIcon } from "./LanguageIcon";
 
 interface SnippetCardProps extends ComponentProps<"div"> {
     snippet: Snippet
     saveCount?: number
     onSaveClick?: () => void
-    isSaved: boolean
+    isSaved?: boolean
 }
 
-const SnippetCard = ({snippet, saveCount, onSaveClick, isSaved, ...props}: SnippetCardProps) => {
+const SnippetCard = ({snippet, saveCount, onSaveClick, isSaved = false, ...props}: SnippetCardProps) => {
 
     const [extensions, setExtensions] = useState<Extension[]>([]);
 
@@ -71,7 +72,10 @@ const SnippetCard = ({snippet, saveCount, onSaveClick, isSaved, ...props}: Snipp
             </div>
         </CardContent>
         <CardHeader>
-            <CardTitle>{snippet.title}</CardTitle>
+            <CardTitle className="flex gap-2">
+                <span className="grow">{snippet.title}</span>
+                <LanguageIcon className="text-muted-foreground" language={snippet.language}/>
+            </CardTitle>
             <CardDescription>{snippet.description}</CardDescription>
         </CardHeader>
         <CardFooter className="flex gap-2 items-center">

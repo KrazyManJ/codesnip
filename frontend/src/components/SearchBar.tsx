@@ -18,10 +18,12 @@ import highlightPlugin from "@/lib/client/codemirror-highlight-plugin";
 import { useRouter } from "next/navigation";
 
 
+interface SearchBarProps {
+    language?: string
+}
 
 
-
-const SearchBar = () => {
+const SearchBar = ({language}: SearchBarProps) => {
     
     const router = useRouter()
 
@@ -38,11 +40,11 @@ const SearchBar = () => {
     }, [searchInput])
     
     useEffect(() => {
-        snippetApi.post<SearchEntry[]>("/search", null, { params: { query: debouncedSearch } }).then(v => {
+        snippetApi.post<SearchEntry[]>("/search", null, { params: { query: debouncedSearch, lang: language } }).then(v => {
             setResults(v.data)
             setIsSearching(false)
         })
-    }, [debouncedSearch])
+    }, [debouncedSearch, language])
 
     return (
         <div className="relative w-full overflow-visible">

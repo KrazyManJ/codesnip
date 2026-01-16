@@ -16,7 +16,7 @@ snippetApi.interceptors.response.use(
     async (error) => {
         if (error.response && error.response.status === 401) {
             if (typeof window !== "undefined") {
-                signIn("keycloak", { callbackUrl: window.location.href });
+                // signIn("keycloak", { callbackUrl: window.location.href });
             }
         }
 
