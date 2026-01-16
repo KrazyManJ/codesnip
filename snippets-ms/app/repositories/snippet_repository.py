@@ -33,7 +33,7 @@ class SnippetRepository:
         return result
 
     async def delete_snippet_by_id(self, snippet_id: ObjectId) -> DeleteResult:
-        return await self.collection.delete_one({"_id": str(snippet_id)})
+        return await self.collection.delete_one({"_id": snippet_id})
 
     async def get_all_public_languages(self) -> list[str]:
         pipeline = [

@@ -3,7 +3,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 from typing import TypedDict
 
-from .object_id import ObjectIdBaseModel
+from .object_id import ObjectIdBaseModel, PyObjectId
 
 
 class Visibility(str, Enum):
@@ -41,3 +41,7 @@ class SnippetDict(TypedDict):
 class Snippet(UploadSnippet, ObjectIdBaseModel):
     author: User
     created_at: datetime = Field(default_factory=datetime.now)
+    
+    
+class BatchSnippetsRequest(BaseModel):
+    snippet_ids: list[PyObjectId] = Field(..., max_length=100)

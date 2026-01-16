@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, status, HTTPException
 from typing import Annotated
 
-from ..model.snippet import Snippet, UploadSnippet, User
+from ..model.snippet import Snippet, UploadSnippet, User, BatchSnippetsRequest
 from ..model.search import SearchResult
 from ..model.stats import Stats
 from ..services.snippet_service import SnippetService
@@ -50,6 +50,18 @@ async def get_snippets_of_user(
     snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
 ):
     return await snippet_service.get_all_user_snippets(user.id)
+
+
+@snippets_router.post(
+    path="/batch",
+    response_model=Page[Snippet],
+)
+async def get_snippets_batch(
+    user: Annotated[User, Depends(get_current_user)],
+    body: BatchSnippetsRequest,
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
+):
+    return await snippet_service.get_snippets_batch(body, user.id)
 
 
 @snippets_router.get(
