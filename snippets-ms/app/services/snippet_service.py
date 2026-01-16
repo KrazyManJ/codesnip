@@ -35,8 +35,13 @@ class SnippetService:
         return result_snippet
     
     
-    async def get_all_snippets(self) -> Page[SnippetDict]:
-        return await self.snippet_repository.get_paginated_snippets_by_query({"visibility": "public"})
+    async def get_all_snippets(self, language: str | None) -> Page[SnippetDict]:
+        query = {"visibility": "public"}
+        
+        if language is not None:
+            query["language"] = language
+            
+        return await self.snippet_repository.get_paginated_snippets_by_query(query)
     
     
     async def get_snippet_by_id(self, snippet_id: str) -> SnippetDict:

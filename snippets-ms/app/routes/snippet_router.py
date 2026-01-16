@@ -36,9 +36,10 @@ async def upload_snippet(
     response_model=Page[Snippet]
 )
 async def all_snippets(
-    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)]
+    snippet_service: Annotated[SnippetService, Depends(get_snippet_service)],
+    language: str | None = None
 ):
-    return await snippet_service.get_all_snippets()
+    return await snippet_service.get_all_snippets(language)
 
 
 @snippets_router.get(
