@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ComponentProps, useEffect, useState } from "react";
 import {
     Command,
     CommandEmpty,
@@ -7,6 +7,7 @@ import {
     CommandItem,
     CommandList,
 } from "./ui/command";
+import { Command as CommandPrimitive } from "cmdk"
 import { useDebounce } from "@uidotdev/usehooks"
 import SearchEntry from "@/model/SearchEntry";
 import { snippetApi } from "@/api";
@@ -20,6 +21,37 @@ import { useRouter } from "next/navigation";
 
 interface SearchBarProps {
     language?: string
+}
+
+
+const SearchBarResultItem = ({
+    searchResult,
+    ...props
+}: {
+    searchResult: SearchEntry,
+} & ComponentProps<typeof CommandPrimitive.Item>) => {
+
+    
+    
+    const title = searchResult.match.title.length === 0 ? searchResult.snippet.title : searchResult.match.title
+
+    return (
+        <CommandItem {...props}>
+            <div className="w-full">
+                <div className="font-bold text-lg"><HighlightedText>{title}</HighlightedText></div>
+                <div className="text-muted-foreground"><HighlightedText>{searchResult.match.description}</HighlightedText></div>
+            </div>
+            {
+                searchResult.match.code && <BaseCodeMirror
+                    value={searchResult.match.code}
+                    extensions={[highlightPlugin]}
+                    height="64px"
+                    className="w-full"
+                    disableScroll
+                />
+            }
+        </CommandItem>
+    )
 }
 
 
@@ -74,27 +106,14 @@ const SearchBar = ({language}: SearchBarProps) => {
                             </CommandEmpty>
                             <CommandGroup>
                                 {!isSearching && results.map((searchResult) => (
-                                    <CommandItem
+                                    <SearchBarResultItem
+                                        searchResult={searchResult}
                                         key={searchResult.snippet.id}
                                         onSelect={() => {
                                             setOpen(false);
                                             router.push(`/snippet/${searchResult.snippet.id}`)
                                         }}
-                                    >
-                                        <div>
-                                            <HighlightedText>{searchResult.match.title}</HighlightedText>
-                                            <div>{`${!!searchResult.match.title}`}</div>
-                                        </div>
-                                        <div>
-                                            <HighlightedText>{searchResult.match.description}</HighlightedText>
-                                        </div>
-                                        {
-                                            searchResult.match.code && <BaseCodeMirror
-                                                value={searchResult.match.code}
-                                                extensions={[highlightPlugin]}
-                                            />
-                                        }
-                                    </CommandItem>
+                                    />
                                 ))}
                             </CommandGroup>
                         </CommandList>

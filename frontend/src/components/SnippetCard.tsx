@@ -54,6 +54,7 @@ const SnippetCard = ({snippet, saveCount, onSaveClick, isSaved = false, ...props
                     readOnly
                     height="150px"
                     extensions={[extensions]}
+                    disableScroll
                 />
                 <Button
                     onClick={(e) => {

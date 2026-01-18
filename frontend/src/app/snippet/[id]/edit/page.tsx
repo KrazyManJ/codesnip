@@ -6,13 +6,12 @@ import Snippet from "@/model/Snippet";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useBoolean } from "usehooks-ts";
 
 export default function EditPage() {
     
     const { id } = useParams();
     const router = useRouter();
-    const submitState = useBoolean();
+    const [submitState, setSubmitState] = useState(false)
 
     const [snippet, setSnippet] = useState<Snippet>()
 
@@ -23,15 +22,15 @@ export default function EditPage() {
     }, [id])
 
     const handleCreate = async (data: SnippetFormValues) => {
-        submitState.setTrue()
+        setSubmitState(true)
         try {
             await snippetApi.put(`/snippets/${id}`, data);
-            router.push("/");
+            router.back();
             toast("Snippet Updated");
         } catch {
             toast.error("Failed to create snippet")
         } finally {
-            submitState.setFalse()
+            setSubmitState(false)
         }
     }
     
@@ -39,7 +38,7 @@ export default function EditPage() {
     return (
         <main>
             {
-                snippet != null && <SnippetForm onSubmit={handleCreate} isSubmitting={submitState.value} initialSnippet={snippet}/>
+                snippet != null && <SnippetForm onSubmit={handleCreate} isSubmitting={submitState} initialSnippet={snippet}/>
             }
         </main>
     )

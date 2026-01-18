@@ -7,7 +7,7 @@ import {
     ViewUpdate,
 } from "@uiw/react-codemirror";
 
-const highlightMark = Decoration.mark({ class: "bg-amber-300" });
+const highlightMark = Decoration.mark({ class: "bg-amber-300 rounded-sm px-1" });
 const hideToken = Decoration.replace({});
 
 const highlightPlugin = ViewPlugin.fromClass(

@@ -2,23 +2,28 @@
 
 import { savesApi, snippetApi } from "@/api";
 import SnippetCard from "@/components/SnippetCard";
+import { Button } from "@/components/ui/button";
+import useAuthenticated from "@/hooks/useAuthenticated";
 import PaginationResponse from "@/model/PaginationResponse";
 import Save from "@/model/Save";
 import Snippet from "@/model/Snippet";
-import { useSession } from "next-auth/react";
+import { LucidePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 
 export default function ProfilePage() {
     
-    const { data: session } = useSession()
+    const authenticated = useAuthenticated()
+
     const router = useRouter()
 
     const [userSnippets, setUserSnippets] = useState<PaginationResponse<Snippet>>()
     const [savedSnippets, setSavedSnippets] = useState<Snippet[]>([])
-    
-    const getSavedSnippets = async () => {
+
+    const getSavedSnippets = useCallback(async () => {
+        if (!authenticated) return;
+
         const {data: saves} = await savesApi.get<PaginationResponse<Save>>("/saves/me", { params: {
             size: 9
         }})
@@ -26,20 +31,29 @@ export default function ProfilePage() {
             snippet_ids: saves.items.map(v => v.snippet_id)
         })
         setSavedSnippets(snippets)
-    }
+    }, [authenticated])
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         getSavedSnippets()
-    }, [])
+    }, [getSavedSnippets])
 
     useEffect(() => {
+        if (!authenticated) return;
         snippetApi.get<PaginationResponse<Snippet>>("/snippets/me").then((v) => setUserSnippets(v.data))
-    }, [userSnippets])
+    }, [userSnippets, authenticated])
+
+    if (!authenticated) return <main></main>
 
     return (
         <main>
-            <h2 className="text-xl font-bold mb-4">My Snippets</h2>
+            <div className="flex justify-between mt-8">
+                <h2 className="text-xl font-bold mb-4">My Snippets</h2>
+                <Button onClick={() => router.push("create_snippet")}>
+                            <LucidePlus size={20}/>
+                            Create new
+                        </Button>
+            </div>
             <div className="grid lg:grid-cols-3 gap-4 grid-cols-1">
                 { userSnippets?.items.map(snippet => 
                     <SnippetCard 

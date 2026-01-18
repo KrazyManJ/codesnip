@@ -19,7 +19,7 @@ const HighlightedText = ({ children }: HighlightedTextProps) => {
                         .replace("<{%HL_END%}>", "");
 
                     return (
-                        <mark key={index} className="bg-amber-300">
+                        <mark key={index} className="bg-amber-300 rounded-sm px-1">
                             {content}
                         </mark>
                     );

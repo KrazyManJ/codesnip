@@ -46,11 +46,6 @@ const SnippetForm = ({ initialSnippet, onSubmit, isSubmitting }: SnippetFormProp
         }
     })
 
-    // const onSubmit = (data: FormValues) => {
-    //     codesnipApi.post("/snippets", data)
-    //     router.push("/")
-    //     toast("New snippet created!")
-    // }
 
     return (
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -159,8 +154,10 @@ const SnippetForm = ({ initialSnippet, onSubmit, isSubmitting }: SnippetFormProp
                 <Field>
                     <Button type="submit" disabled={!form.formState.isValid || isSubmitting}>
                         {isSubmitting && <Spinner/>}
-                        {isSubmitting ? "Creating..." : "Create"}
-                        
+                        {!isSubmitting && !initialSnippet &&  "Create"}
+                        {isSubmitting && !initialSnippet && "Creating..."}
+                        {!isSubmitting && initialSnippet && "Edit"}
+                        {isSubmitting && initialSnippet && "Editing..."}
                     </Button>
                 </Field>
             </FieldGroup>
